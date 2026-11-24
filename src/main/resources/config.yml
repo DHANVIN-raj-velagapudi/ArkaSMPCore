@@ -6,7 +6,11 @@
 # ║  Text uses MiniMessage colours: <green> <red> <gold> <bold> <gray> ...   ║
 # ║  Per-rank limits with permissions:  arka.homes.limit.<number>            ║
 # ╚══════════════════════════════════════════════════════════════════════════╝
-config-version: 2
+
+# MANAGED BY THE PLUGIN - DO NOT CHANGE THIS LINE. It stores the plugin version that last updated this file.
+# When you install a newer version, new options are added below automatically and your settings are kept
+# (a backup of the old file goes to the config-backups folder).
+config-version: "auto"
 
 
 # ──────────────────────────────── TELEPORTING ────────────────────────────────

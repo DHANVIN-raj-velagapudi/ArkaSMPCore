@@ -30,7 +30,8 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
 public final class ArkaSMPCore extends JavaPlugin {
-    private static final int CONFIG_VERSION = 2;
+    /** Sections whose entries belong to the admin: a rank they deleted is not added back by a config update. */
+    private static final java.util.Set<String> ADMIN_OWNED = java.util.Set.of("homes.ranks", "pwarps.ranks");
     private static final String[] COMMANDS = {
             "sethome", "home", "delhome", "homes", "spawn", "setspawn", "tpa", "tpahere", "tpaccept",
             "tpdeny", "tpcancel", "rtp", "claim", "unclaim", "lag", "arka", "afk", "trapped",
@@ -58,8 +59,9 @@ public final class ArkaSMPCore extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        migrateConfig();
-        saveDefaultConfig();
+        migrateLegacyConfig();
+        ConfigUpdater.update(getDataFolder(), () -> getResource("config.yml"), getPluginMeta().getVersion(),
+                getLogger(), ADMIN_OWNED);
         messages = new Messages(this);
         cooldowns = new Cooldowns();
         players = new Players(this);
@@ -113,11 +115,11 @@ public final class ArkaSMPCore extends JavaPlugin {
         getLogger().info("ArkaSMPCore enabled.");
     }
 
-    /** An old-format config is kept as config-old.yml and replaced by the new commented one. */
-    private void migrateConfig() {
+    /** A config from before versioning existed (no config-version, or 1) is kept as config-old.yml and replaced. */
+    private void migrateLegacyConfig() {
         File file = new File(getDataFolder(), "config.yml");
         if (!file.exists()) return;
-        if (YamlConfiguration.loadConfiguration(file).getInt("config-version", 1) == CONFIG_VERSION) return;
+        if (!YamlConfiguration.loadConfiguration(file).getString("config-version", "1").equals("1")) return;
         try {
             Files.move(file.toPath(), new File(getDataFolder(), "config-old.yml").toPath(),
                     StandardCopyOption.REPLACE_EXISTING);

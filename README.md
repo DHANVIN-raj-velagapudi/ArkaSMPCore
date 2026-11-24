@@ -34,10 +34,11 @@ buying claim blocks).
 10. [Configuration guide](#configuration-guide)
 11. [Replacing other plugins](#replacing-other-plugins)
 12. [Bedrock / Geyser notes](#bedrock--geyser-notes)
-13. [Status and known limits](#status-and-known-limits)
-14. [Building from source](#building-from-source)
-15. [Contributing and support](#contributing-and-support)
-16. [License](#license)
+13. [Versions and updating](#versions-and-updating)
+14. [Status and known limits](#status-and-known-limits)
+15. [Building from source](#building-from-source)
+16. [Contributing and support](#contributing-and-support)
+17. [License](#license)
 
 ---
 
@@ -109,9 +110,7 @@ bar chart of the daily peak. The same numbers are available as placeholders.
 4. Set your spawn with `/setspawn`.
 5. Give your staff the permissions they need ([Permissions](#permissions)).
 
-**Updating:** when a new version adds config options, your existing `config.yml` does **not** receive them
-automatically. Copy the new sections from the default config shipped inside the jar (open the jar as a zip) or
-rename your old file and let the plugin generate a fresh one.
+**Updating:** replace the old jar with the new one and restart. See [Versions and updating](#versions-and-updating).
 
 ---
 
@@ -303,6 +302,34 @@ reported (`afk.bedrock-movement-fallback`).
 
 ---
 
+## Versions and updating
+
+Every release gets a new version number (`MAJOR.MINOR.PATCH`: a fix raises the last number, a new feature the middle
+one, a breaking change the first). The history is in [CHANGELOG.md](CHANGELOG.md), and the jar name carries the
+version, e.g. `ArkaSMPCore-1.1.0.jar`.
+
+**Your `config.yml` updates itself.** It stores the plugin version that last updated it:
+
+```yaml
+config-version: "1.1.0"      # do not change this line
+```
+
+When you install a newer jar and start the server, the plugin:
+
+1. saves a copy of your current config in `plugins/ArkaSMPCore/config-backups/` (the last 10 are kept),
+2. **adds the options that are new in this version** to `config.yml`, with their comments,
+3. **keeps every value you changed** (and ranks you added or removed),
+4. raises `config-version` and writes what happened to the console.
+
+**Please do not edit the `config-version` line.** It is managed by the plugin. If it is changed by hand, the next
+start simply runs the update again, which is harmless, but your backups will be labelled wrongly.
+If your `config.yml` has a YAML mistake, it is left exactly as it is and the console tells you.
+
+Update steps: stop the server, replace the jar, start the server, read the console for the "config.yml updated"
+lines. Update ArkaSMPCore and [ArkaSMPEconomy](https://github.com/DHANVIN-raj-velagapudi/ArkaSMPEconomy) together.
+
+---
+
 ## Status and known limits
 
 We built and tested this for our own server, and we are releasing it as it is. It is **young software**:
@@ -323,7 +350,7 @@ Requires JDK 21+ and Maven.
 mvn -q -B install
 ```
 
-The jar is written to `target/ArkaSMPCore-1.0.0.jar`. `install` also puts it in your local Maven repository, which
+The jar is written to `target/ArkaSMPCore-<version>.jar` (the version is set in `pom.xml`). `install` also puts it in your local Maven repository, which
 [ArkaSMPEconomy](https://github.com/DHANVIN-raj-velagapudi/ArkaSMPEconomy) needs to compile.
 
 ---
