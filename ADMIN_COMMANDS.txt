@@ -1,0 +1,62 @@
+ARKA SMP CORE - ADMIN COMMANDS
+==============================
+All need permission  arka.admin  unless noted.
+
+GENERAL
+-------
+/arka reload                      Reload config.yml
+/arka clear                       Clear ground items / configured mobs now
+/setspawn                         Set the server spawn where you stand
+/lag                              TPS, MSPT, RAM, per-world counts   (permission: arka.lag)
+/arka admin help                  List admin commands in game
+
+CLAIM BLOCKS
+------------
+/arka admin claimblocks get <player>
+/arka admin claimblocks add <player> <amount>
+/arka admin claimblocks take <player> <amount>
+/arka admin claimblocks set <player> <amount>      (sets their total)
+  Amount limit: 1,000,000,000
+
+CLAIMS
+------
+/arka admin claims <player>           List their claims (IDs, sizes)
+/arka admin deleteclaim [id]          Delete a claim by ID, or the one you stand in
+/arka admin deleteclaims <player>     Delete all of that player's claims
+/arka admin claimtp <id>              Teleport to a claim's centre
+
+HOMES
+-----
+/arka admin homes <player>            List their homes and limit
+/arka admin home <player> <name>      Teleport to their home
+/arka admin delhome <player> <name>   Delete their home
+/arka admin homelimit get <player>
+/arka admin homelimit set <player> <amount>        (0 to 1000, overrides rank limit)
+/arka admin homelimit reset <player>               (remove the override)
+
+PLAYERS AND SYSTEMS
+-------------------
+/arka admin resetcooldown <player>    Clear all their cooldowns
+/arka admin afk <player>              AFK status, reason, duration
+/arka admin leaderboard refresh       Refresh rankings now
+/arka admin leaderboard reseed        Re-import old players into leaderboards
+
+CONFIG (edit settings in game)
+------------------------------
+/arka admin get <path>                e.g. claims.blocks-per-hour
+/arka admin set <path> <value>        Existing number / true-false / text only.
+                                      Saves and reloads. Lists and sections cannot be changed.
+
+RELATED PERMISSIONS
+-------------------
+arka.admin               All admin commands, /setspawn, /arka reload, /arka clear
+arka.lag                 /lag
+arka.claims.bypass       Build in anyone's claim
+arka.bypass.warmup       Skip teleport countdowns
+arka.bypass.cooldown     Skip command cooldowns
+arka.bypass.combat       Teleport while in combat
+arka.afk.bypass          Never marked AFK
+arka.leaderboard.hide    Hidden from leaderboards
+arka.homes.limit.<n>     Home limit for a rank, e.g. arka.homes.limit.10
+
+Player names can be online players or cached offline ones. Tab completion works.

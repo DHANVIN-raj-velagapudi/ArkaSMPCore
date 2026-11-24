@@ -1,0 +1,65 @@
+ARKA SMP CORE - PLAYER COMMANDS
+===============================
+No permission needed. Everything also works by tapping menus (no typing), good for mobile.
+
+MENU
+----
+/arka  or  /arka menu              Main menu: homes, spawn, teleport requests, random teleport, claims
+
+HOMES
+-----
+/homes                             Open your homes menu (tap a home to teleport, tap an empty slot to set one)
+/home                              Same menu
+/home <name>                       Teleport to a home
+/sethome [name]                    Set a home here (default name: home)
+/delhome [name]                    Delete a home (no name = delete mode menu)
+  Names: letters, numbers, - and _ (max 16)
+
+SPAWN
+-----
+/spawn                             Teleport to spawn
+
+TELEPORT REQUESTS (TPA)
+-----------------------
+/tpa [player]                      Ask to teleport to a player (no name = pick from a menu)
+/tpahere [player]                  Ask a player to teleport to you
+/tpaccept [player]                 Accept a request        (alias: /tpyes)
+/tpdeny [player]                   Deny a request          (alias: /tpno)
+/tpcancel                          Cancel your sent requests
+  Requests expire after 60 seconds. Accept/Deny buttons also appear in chat.
+
+RANDOM TELEPORT
+---------------
+/rtp                               Teleport to a random safe spot    (aliases: /wild, /randomtp)
+
+AFK
+---
+/afk                               Toggle AFK. You earn no play time while AFK, and cannot be attacked by players.
+
+LAND CLAIMS
+-----------
+/claim                             Open the claims menu          (aliases: /landclaim, /lc)
+/claim tool                        Get the claim tool (golden shovel)
+/claim blocks                      Show your claim blocks (left / total / used)
+/claim info                        Info about the claim you stand in
+/claim list                        List your claims
+/claim show                        Show borders of the claim you stand in (glowstone)
+/claim delete                      Delete the claim you stand in (blocks returned)    (also: /unclaim)
+/claim deleteall                   Delete all your claims
+/claim trust <player>              Let a player build in your claims
+/claim untrust <player>            Remove a trusted player
+/claim trustlist                   List trusted players
+
+HOW TO CLAIM LAND
+-----------------
+1. /claim tool  (or tap "Get claim tool" in the claims menu)
+2. Right-click one corner with the golden shovel.
+3. Right-click the opposite corner. The claim costs 1 claim block per ground block.
+4. Glowstone borders show for a few seconds. Sneak + right-click cancels a selection.
+5. Right-click inside an existing claim with the shovel to see its owner and size.
+
+Everyone starts with 300 claim blocks and earns 100 per hour of active (non-AFK) play.
+
+OTHER
+-----
+/arka version                      Plugin version

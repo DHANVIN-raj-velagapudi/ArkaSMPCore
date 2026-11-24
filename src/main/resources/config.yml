@@ -1,0 +1,530 @@
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║                         ArkaSMPCore configuration                        ║
+# ╠══════════════════════════════════════════════════════════════════════════╣
+# ║  Change a value, then run  /arka reload  (no restart needed).            ║
+# ║  Admins can also change numbers in-game:  /arka admin set <path> <value> ║
+# ║  Text uses MiniMessage colours: <green> <red> <gold> <bold> <gray> ...   ║
+# ║  Per-rank limits with permissions:  arka.homes.limit.<number>            ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+config-version: 2
+
+
+# ──────────────────────────────── TELEPORTING ────────────────────────────────
+# Applies to /home, /spawn, /tpa and /rtp.
+teleport:
+  warmup: 3                 # seconds a player must stand still (0 = instant)
+  cancel-on-move: true      # moving cancels the teleport
+  cancel-on-damage: true    # taking damage cancels the teleport
+  block-in-combat: true     # no teleporting for a few seconds after PvP (afk.combat-lock-seconds)
+
+
+# ───────────────────────────────────── HOMES ─────────────────────────────────
+homes:
+  default-limit: 3              # homes every player gets (admins can override per player)
+  # Home limit per rank. The name must match the LuckPerms group name exactly.
+  # A player gets the HIGHEST limit among the groups they are in (and default-limit).
+  # Add as many ranks as you like. Per-player override: /arka admin homelimit set <player> <n>
+  ranks:
+    member: 3
+    vip: 6
+    youtube: 10
+    admin: 50
+  cooldown: 5                   # seconds between /home uses
+  block-in-foreign-claims: true # cannot set a home inside someone else's claim
+
+
+# ───────────────────────────────────── SPAWN ─────────────────────────────────
+spawn:
+  teleport-on-first-join: true  # new players start at /setspawn
+  teleport-on-respawn: true     # after death (only if they have no bed/anchor)
+
+
+# ────────────────────────────────── TPA REQUESTS ─────────────────────────────
+tpa:
+  timeout: 60               # seconds before a request expires
+  cooldown: 10              # seconds between sending requests
+
+
+# ─────────────────────────────── RANDOM TELEPORT ─────────────────────────────
+rtp:
+  cooldown: 300             # seconds between uses
+  min-radius: 500           # not closer than this to the centre
+  max-radius: 5000          # not farther than this from the centre
+  center-x: 0
+  center-z: 0
+  max-attempts: 15          # tries to find a safe spot before giving up
+  avoid-claims: true        # never land inside a claim
+  disabled-worlds: []       # e.g. [world_nether]; the End is always disabled
+
+
+# ───────────────────────────────── SERVER STATS ─────────────────────────────
+# /arka stats and %arka_stats_...% placeholders (weekly active players, new players, total joined...).
+stats:
+  weekly-active-minutes: 60   # a player counts as "weekly active" with MORE than this much play time in the last 7 days
+  timezone: ""               # for the busiest/quietest hour, e.g. Asia/Kolkata (empty = the server's own time zone)
+
+# ─────────────────────────────────── WARPS ──────────────────────────────────
+# /warp <name>  = server warps made by admins (/setwarp <name>, /delwarp <name>)
+# /pwarp <name> = warps made by players (/pwarp set <name>, /pwarp delete <name>)
+# Every warp is checked when it is made AND right before every teleport. Unsafe = the teleport is refused.
+warps:
+  enabled: true
+  cooldown: 5                 # seconds between /warp and /pwarp teleports
+  warn-other-world: true      # tell the player when the warp is in another world (nether, end...)
+  disabled-worlds: []         # worlds where player warps cannot be made
+  safety:
+    max-height-above-ground: 12   # how far below the floor we look for ground
+    platform-drop: 4              # a platform with a drop longer than this must not be tiny...
+    min-platform-blocks: 4        # ...at least this many solid blocks (of the 3x3 under you)
+    room-cells: 120               # a sealed pocket smaller than this (obsidian cell, closed box) is unsafe
+pwarps:
+  enabled: true
+  default-limit: 1            # player warps every player may own
+  create-cost: 500            # rupees to make a NEW player warp (0 = free; moving one is free). Needs ArkaSMPEconomy.
+  # Limit per rank: the name must match the LuckPerms group exactly. The HIGHEST limit wins.
+  # (Also: permission arka.pwarps.limit.<number>. Staff with arka.warp.free never pay.)
+  ranks:
+    member: 1
+    vip: 2
+    mvp: 3
+
+# ───────────────────────────────── LAND CLAIMS ───────────────────────────────
+# Players mark two corners with a golden shovel. The claim costs one claim
+# block per ground block (a 20x30 claim costs 600).
+claims:
+  starting-blocks: 300      # claim blocks everyone gets when they first join
+  blocks-per-hour: 100      # extra claim blocks earned per hour of play time
+  max-earned-blocks: 0      # cap on blocks earned from play time (0 = no cap)
+  min-size: 5               # smallest allowed width and length
+  tool: GOLDEN_SHOVEL       # item used to mark corners
+  bypass-needs-toggle: true # staff with arka.claims.bypass (OPs, wildcard) are protected like everyone else
+                            # until they run /arka admin bypass. Set false for the old always-on bypass.
+  inspect-tool: STICK       # right-click any block with this to see who owns the land and its border (red if not yours)
+  inspect-unclaimed-message: true   # also say "nobody owns this" when the stick is used on free land
+  disabled-worlds: []       # worlds where claiming is not allowed
+  confirm-delete: true      # /unclaim, /claim delete and /claim deleteall ask "are you sure?" first
+  buy:                      # /claim buy [amount]: claim blocks for rupees (needs ArkaSMPEconomy)
+    enabled: true
+    price-per-block: 2.0    # rupees per claim block
+    max-per-purchase: 5000
+    max-total: 50000        # most blocks one player can ever buy (0 = no limit)
+    menu-amounts: [100, 500, 1000, 5000]
+  transfer:                 # /claim send <player> <amount>: give UNUSED claim blocks to someone
+    enabled: true
+    min-amount: 10
+    daily-cap: 3000         # most blocks one player can send per day (0 = no limit)
+    min-play-hours: 5       # active play time needed before sending (stops fresh alt accounts feeding a main)
+    menu-amounts: [50, 100, 500, 1000]
+  show-enter-message: true  # "Entering X's land" above the hotbar
+  warn:                     # what a player sees when they try to build/break/use things in someone else's claim
+    chat: true              # also send a chat message (the action bar alone is easy to miss on phones)
+    chat-interval-seconds: 5   # at most one chat warning per this many seconds
+    sound: true             # small "no" sound with the chat warning
+  border:
+    material: GLOWSTONE     # fake block shown at the claim edge (only the player sees it)
+    seconds: 15             # how long the border stays visible
+    spacing: 2              # one marker every N blocks (1 = solid line)
+    foreign-materials:      # someone ELSE's claim is drawn in these, alternating (red = not yours)
+      - NETHERRACK
+      - REDSTONE_BLOCK
+    max-distance: 64        # only draw border parts this close to the player
+  protect:                  # what is protected inside claims
+    explosions: true
+    fire: true
+    pistons: true
+    animals: true
+    hoppers: true             # hoppers/minecarts outside cannot pull from or push into claimed chests
+    dispensers: true          # dispensers outside a claim cannot place lava/water inside it
+    liquids: true             # water/lava from outside cannot flow into a claim
+    mob-griefing: true        # endermen, withers, etc. cannot change blocks inside claims
+    mobs: all                 # who may hurt/kill mobs in a claim: only owner + trusted.
+                              #   all = every mob incl. hostile | non-hostile = animals, villagers, pets, golems | off
+    defend-self: true         # a mob that is attacking you may always be fought back
+
+
+# ─────────────────────────────────── /TRAPPED ────────────────────────────────
+# For players stuck inside someone else's claim (walled in, trapped by a trap).
+# It only teleports them to a safe spot outside; they still cannot build or break in the claim.
+trapped:
+  enabled: true
+  cooldown: 60              # seconds before it can be used again (starts only after a successful escape)
+  distance: 10              # blocks outside the claim edge to land at
+  max-attempts: 12          # how many spots are tried before giving up
+
+
+# ───────────────────────────────── LEADERBOARDS ──────────────────────────────
+# Top kills / deaths / money / playtime, shown as PlaceholderAPI placeholders
+# (use them in DecentHolograms, TAB, scoreboards). See the placeholder list in
+# the setup guide. Rankings refresh live every few seconds.
+leaderboards:
+  enabled: true
+  refresh-seconds: 10       # how often online players' stats and the rankings update
+  save-minutes: 5           # how often stats are saved to disk
+  seed-existing: true       # first start: import players who joined before this plugin
+  hide-permission: arka.leaderboard.hide   # players with this never appear (give it to staff)
+  show-zero: false          # list players who have 0 kills / 0 deaths / $0
+  same-victim-cooldown-seconds: 300   # killing the same player again within this time is not counted (anti boosting)
+  empty-name: "-"           # shown when a rank slot is empty
+  empty-value: "-"
+  unranked: "-"             # shown as your position if you are hidden / unknown
+  money-format: "$%,.0f"    # Java format: "$%,.2f" for cents, "%,.0f coins" etc.
+  playtime-format: "{h}h {m}m"
+  playtime-days-format: "{d}d {h}h"
+
+
+# ─────────────────────────────────────── AFK ─────────────────────────────────
+# Strict AFK detection. Only real player input counts (key presses, chat, clicks,
+# breaking/placing blocks...). Being moved by water, pistons or minecarts does NOT.
+# While AFK a player: earns no play time (no hourly reward, no claim blocks, no
+# leaderboard time), makes no mobs spawn near them, has a tiny loaded area, and
+# cannot be hurt by other players.
+afk:
+  enabled: true
+  timeout-seconds: 120          # no real activity for this long = AFK
+  tag: "&7[AFK] "               # what %arka_afk% shows while AFK (use it in TAB)
+  announce: false               # tell everyone when someone goes/returns AFK
+  combat-lock-seconds: 15       # after PvP you cannot go AFK (stops escaping a fight)
+  invulnerable: false           # true = AFK players take no damage at all (void excepted)
+  simulation-distance: 2        # chunks around an AFK player that still tick (min 2)
+  view-distance: 3              # chunks sent to an AFK player (min 2)
+  kick-after-minutes: 0         # kick players AFK this long (0 = never)
+  bypass-permission: arka.afk.bypass   # staff/builders who are never marked AFK
+  bedrock-movement-fallback: true      # Bedrock (Geyser) players: also count real walking if key presses are not reported
+  macro:
+    enabled: true               # catches players who only tap keys / jump in a small area
+    window-seconds: 300         # look at this much time at once
+    radius: 6                   # "small area" size in blocks
+    wake-distance: 8            # a macro-AFK player must walk this far (or do a real action) to return
+
+
+# ───────────────────────────── LAG CLEANER (ClearLag) ────────────────────────
+cleaner:
+  enabled: true
+  interval-seconds: 600     # how often ground items are cleared
+  warnings: [60, 30, 10, 5] # chat warnings, seconds before clearing
+  items:
+    enabled: true
+    whitelist:              # these items are never removed
+      - DIAMOND
+      - DIAMOND_BLOCK
+      - NETHERITE_INGOT
+      - NETHERITE_SCRAP
+      - ELYTRA
+      - TOTEM_OF_UNDYING
+      - ENCHANTED_GOLDEN_APPLE
+      - SHULKER_BOX
+  xp-orbs: false            # also remove experience orbs
+  arrows: true              # remove arrows stuck in blocks / on the ground
+  mobs:
+    enabled: false          # remove the mob types below (named/tamed/leashed are kept)
+    types: [ZOMBIE, SKELETON, CREEPER, SPIDER, ENDERMAN, WITCH, SLIME, PHANTOM, DROWNED, HUSK, STRAY]
+
+
+# ──────────────────────────────────── MENUS ──────────────────────────────────
+# Each button: material (any Minecraft item), name and lore (MiniMessage).
+menus:
+  main:
+    title: "<dark_gray>Arka SMP <gray>» <white>Menu"
+    homes:
+      material: RED_BED
+      name: "<green><bold>Homes"
+      lore: ["<gray>Set and teleport to your homes"]
+    spawn:
+      material: COMPASS
+      name: "<aqua><bold>Spawn"
+      lore: ["<gray>Teleport to spawn"]
+    tpa:
+      material: ENDER_PEARL
+      name: "<light_purple><bold>Teleport to Players"
+      lore: ["<gray>Send or answer teleport requests"]
+    rtp:
+      material: GRASS_BLOCK
+      name: "<yellow><bold>Random Teleport"
+      lore: ["<gray>Explore the wild"]
+    claims:
+      material: GOLDEN_SHOVEL
+      name: "<gold><bold>Land Claims"
+      lore: ["<gray>Protect your builds"]
+  warps:
+    title: "<dark_gray>Server warps"
+  pwarps:
+    title: "<dark_gray>Player warps"
+  homes:
+    title: "<dark_gray>Your Homes"
+    home:
+      material: RED_BED
+      name: "<green>{name}"
+      lore: ["<gray>{world} <dark_gray>({x}, {y}, {z})", "", "<yellow>Click to teleport"]
+    home-delete:
+      material: RED_CONCRETE
+      name: "<red>Delete {name}"
+      lore: ["<gray>Click to delete this home"]
+    empty:
+      material: GRAY_BED
+      name: "<gray>Empty slot"
+      lore: ["<green>Click to set a home here"]
+    info:
+      material: PAPER
+      name: "<white>Homes: <yellow>{used}<gray>/<yellow>{limit}"
+      lore: []
+    delete-on:
+      material: TNT
+      name: "<red>Delete mode"
+      lore: ["<gray>Click to choose a home to delete"]
+    delete-off:
+      material: BARRIER
+      name: "<gray>Exit delete mode"
+      lore: []
+    back:
+      material: ARROW
+      name: "<white>Back"
+      lore: []
+    confirm-title: "<dark_gray>Delete {name}?"
+  tpa:
+    title: "<dark_gray>Teleport Requests"
+    players:
+      material: PLAYER_HEAD
+      name: "<green><bold>Request a teleport"
+      lore: ["<gray>Pick an online player"]
+    requests:
+      material: WRITABLE_BOOK
+      name: "<yellow><bold>Incoming requests <white>({count})"
+      lore: ["<gray>Accept or deny requests"]
+    pick-title: "<dark_gray>Choose a player"
+    requests-title: "<dark_gray>Incoming requests"
+    choose-title: "<dark_gray>{player}"
+    tpto:
+      material: ENDER_PEARL
+      name: "<aqua>Teleport to {player}"
+      lore: ["<gray>You go to them"]
+    tphere:
+      material: ENDER_EYE
+      name: "<light_purple>Bring {player} to me"
+      lore: ["<gray>They come to you"]
+    accept:
+      material: LIME_CONCRETE
+      name: "<green><bold>Accept"
+      lore: []
+    deny:
+      material: RED_CONCRETE
+      name: "<red><bold>Deny"
+      lore: []
+  claims:
+    title: "<dark_gray>Land Claims"
+    tool:
+      material: GOLDEN_SHOVEL
+      name: "<gold><bold>Get claim tool"
+      lore: ["<gray>Right-click two corners to claim land"]
+    show:
+      material: GLOWSTONE
+      name: "<yellow><bold>Show borders"
+      lore: ["<gray>Show the claim you are standing in"]
+    delete:
+      material: TNT
+      name: "<red><bold>Delete this claim"
+      lore: ["<gray>Gives the blocks back"]
+    trust:
+      material: PLAYER_HEAD
+      name: "<aqua><bold>Trust a player"
+      lore: ["<gray>Let a friend build in the claim you are standing in"]
+    untrust:
+      material: BARRIER
+      name: "<red><bold>Remove trusted player"
+      lore: ["<gray>Trusted in this claim: <white>{trusted}"]
+    info:
+      material: MAP
+      name: "<white>Claim blocks: <yellow>{remaining}"
+      lore: ["<gray>Total: <white>{total}", "<gray>Used: <white>{used}", "<gray>Earn <white>+{perhour} <gray>per hour played"]
+    trust-title: "<dark_gray>Trust who?"
+    send-title: "<dark_gray>Send blocks to who?"
+    untrust-title: "<dark_gray>Remove who?"
+    back:
+      material: ARROW
+      name: "<white>Back"
+      lore: []
+  confirm:
+    yes:
+      material: LIME_CONCRETE
+      name: "<green><bold>Yes"
+      lore: []
+    no:
+      material: RED_CONCRETE
+      name: "<red><bold>No"
+      lore: []
+  picker:
+    head-lore: ["<yellow>Click to select"]
+    prev:
+      material: ARROW
+      name: "<white>Previous page"
+      lore: []
+    next:
+      material: ARROW
+      name: "<white>Next page"
+      lore: []
+    back:
+      material: BARRIER
+      name: "<white>Back"
+      lore: []
+    empty:
+      material: GLASS_PANE
+      name: "<gray>Nobody here"
+      lore: []
+
+
+# ─────────────────────────────────── MESSAGES ────────────────────────────────
+# {placeholders} are filled in by the plugin. Keep them when you edit a line.
+messages:
+  prefix: "<dark_gray>[<gold>Arka<dark_gray>] <gray>"
+  player-only: "<red>Only players can use this."
+  no-permission: "<red>You do not have permission."
+  unknown-player: "<red>Player not found."
+  on-cooldown: "<red>Wait <white>{seconds}s <red>before using this again."
+
+  # teleporting
+  teleport-warmup: "Teleporting in <yellow>{seconds}s<gray>. Do not move."
+  teleport-cancelled: "<red>Teleport cancelled."
+  teleported: "<green>Teleported."
+  already-teleporting: "<red>You are already teleporting."
+  teleport-combat: "<red>You cannot teleport right after a fight."
+
+  # homes & spawn
+  home-set: "<green>Home <white>{name} <green>saved."
+  home-limit: "<red>You can only have <white>{limit} <red>homes."
+  home-deleted: "<yellow>Home <white>{name} <yellow>deleted."
+  home-missing: "<red>No home named <white>{name}<red>."
+  home-none: "<red>You have no homes. Use <white>/sethome<red>."
+  home-invalid-name: "<red>Home names: letters, numbers, - and _ (max 16)."
+  home-blocked-claim: "<red>You cannot set a home inside someone else's claim."
+  spawn-set: "<green>Spawn set."
+
+  # tpa
+  tpa-sent: "<green>Request sent to <white>{player}<green>."
+  tpa-here-sent: "<green>Request sent to <white>{player}<green> to come to you."
+  tpa-received: "<yellow>{player}</yellow> wants to teleport to you. <green><click:run_command:'/tpaccept {player}'>[Accept]</click></green> <red><click:run_command:'/tpdeny {player}'>[Deny]</click></red>"
+  tpa-here-received: "<yellow>{player}</yellow> wants you to teleport to them. <green><click:run_command:'/tpaccept {player}'>[Accept]</click></green> <red><click:run_command:'/tpdeny {player}'>[Deny]</click></red>"
+  tpa-self: "<red>You cannot teleport to yourself."
+  tpa-pending: "<red>You already have a pending request to <white>{player}<red>."
+  tpa-none: "<red>No pending teleport requests."
+  tpa-accepted-you: "<green>{player} accepted your request."
+  tpa-accepted: "<green>Request accepted."
+  tpa-denied-you: "<red>{player} denied your request."
+  tpa-denied: "<yellow>Request denied."
+  tpa-cancelled: "<yellow>Request cancelled."
+
+  # rtp
+  rtp-searching: "<yellow>Looking for a safe spot..."
+  rtp-failed: "<red>Could not find a safe spot. Try again."
+  rtp-world-disabled: "<red>Random teleport is disabled in this world."
+  rtp-busy: "<red>Already searching."
+
+  # claims
+  claim-tool-given: "<gold>Claim tool ready. <gray>Right-click one corner, then the opposite corner. Sneak + right-click cancels."
+  claim-corner-1: "<green>First corner set at <white>{x}, {z}<green>. Now right-click the opposite corner."
+  claim-selection-cancelled: "<yellow>Claim selection cancelled."
+  claim-created: "<green>Claim created: <white>{w}x{l} <gray>({area} blocks). <white>{remaining} <gray>claim blocks left."
+  claim-overlap: "<red>That overlaps a claim owned by <white>{owner}<red>."
+  claim-too-small: "<red>A claim must be at least <white>{min}x{min}<red>."
+  claim-not-enough: "<red>You need <white>{need} <red>claim blocks but only have <white>{have}<red>."
+  claim-other-world: "<red>Both corners must be in the same world."
+  claim-disabled-world: "<red>Claims are disabled in this world."
+  claim-info: "<gray>Claim of <white>{owner}<gray>: <white>{w}x{l} <gray>({area} blocks)"
+  claim-blocks: "<gray>Claim blocks: <yellow>{remaining} <gray>left of <yellow>{total} <gray>(used {used}, <white>+{perhour}<gray>/hour played)"
+  claim-removed: "<yellow>Claim deleted. <white>{area} <yellow>blocks returned."
+  claim-removed-all: "<yellow>Deleted <white>{count} <yellow>claims."
+  claim-not-yours: "<red>You do not own this claim."
+  claim-none-here: "<red>You are not standing in a claim."
+  trust-added: "<green>{player} can now build in THIS claim only."
+  trust-added-all: "<green>{player} can now build in all your claims."
+  trust-removed-all: "<yellow>{player} was removed from all your claims."
+  trust-not-in-claim: "<red>Stand inside the claim you want to share first."
+  claim-bypass-on: "<yellow>Claim bypass ON: you can build, break and open things in any claim. Run it again to turn off."
+  claim-bypass-off: "<green>Claim bypass OFF: you are protected like everyone else."
+  trust-removed: "<yellow>{player} was removed from this claim."
+  trust-already: "<yellow>{player} is already trusted."
+  trust-not-trusted: "<red>{player} is not trusted."
+  trust-self: "<red>You cannot trust yourself."
+  claim-denied: "<red>This land belongs to {owner}."
+  claim-unclaimed: "<green>Nobody owns this land. <gray>Use a golden shovel to claim it."
+  claim-denied-chat: "<red>! This land is claimed by <white>{owner}<red>. You cannot build or break here. <gray>(Stuck inside? Use <white>/trapped<gray>)"
+  trapped-disabled: "<red>/trapped is turned off."
+  trapped-no-claim: "<red>There is no claim at your position, so /trapped is not needed."
+  trapped-own-claim: "<red>This claim belongs to you or a player who trusted you ({owner}), so you are allowed here. /trapped only works inside someone else's claim."
+  trapped-not-in-claim: "<red>You are not inside someone else's claim."
+  trapped-searching: "<yellow>Finding a safe spot outside..."
+  trapped-done: "<green>You were moved {distance} blocks outside the claim."
+  trapped-failed: "<red>Could not find a safe spot nearby. Ask the owner, or try again from another place."
+  claim-enter: "<green>Entering {owner}'s land"
+  claim-leave: "<gray>Leaving claimed land"
+
+  # afk
+  afk-on: "<yellow>You are now AFK. <gray>You earn no play time while AFK."
+  afk-on-macro: "<yellow>You were marked AFK (no real activity). <gray>Chat, mine, or walk away to return."
+  afk-off: "<green>You are no longer AFK."
+  afk-victim: "<red>That player is AFK and cannot be attacked."
+  afk-combat: "<red>You cannot go AFK right after a fight."
+  afk-kicked: "<red>You were kicked for being AFK too long."
+  afk-announce-on: "<gray>{player} is now AFK."
+  afk-announce-off: "<gray>{player} is back."
+
+  # cleaner & admin
+  cleaner-warning: "<yellow>Ground items will be cleared in <white>{seconds}s<yellow>!"
+  cleaner-done: "<green>Cleared <white>{items} <green>items and <white>{mobs} <green>mobs."
+  reload-done: "<green>Configuration reloaded."
+  lag-line: "<gold>TPS <white>{tps} <gray>| <gold>MSPT <white>{mspt} <gray>| <gold>RAM <white>{used}/{max} MB"
+  lag-world: "<gray>{world}: <white>{chunks} <gray>chunks, <white>{entities} <gray>entities, <white>{items} <gray>items"
+
+  # warps
+  warp-disabled: "<red>Warps are turned off."
+  warp-invalid-name: "<red>Warp names use letters, numbers, - and _ (max 16) and cannot be a command word like 'set' or 'list'."
+  warp-missing: "<red>No warp called {name}."
+  warp-created: "<green>Server warp <white>{name} <green>created."
+  warp-moved: "<green>Server warp <white>{name} <green>moved here."
+  warp-deleted: "<green>Warp <white>{name} <green>deleted."
+  warp-usage-admin: "<red>/setwarp <name> [force]   /delwarp <name>"
+  warp-force-hint: "<gray>Admins can skip the safety check with <white>/setwarp <name> force<gray>."
+  warp-world-disabled: "<red>Player warps cannot be made in this world."
+  warp-world-missing: "<red>The world of warp {name} is not loaded."
+  warp-load-failed: "<red>The warp area could not be loaded. Try again."
+  warp-refused: "<red>Teleport cancelled: warp <white>{name} <red>is not safe right now."
+  warp-other-world: "<yellow>Warning: this warp is in <white>{kind} <yellow>({world}). Stay ready."
+  warp-unsafe-void: "<red>That spot is outside the world or the world border."
+  warp-unsafe-blocked: "<red>Something solid or dangerous is at the feet or head of that spot ({detail})."
+  warp-unsafe-floor: "<red>Nothing safe to stand on there ({detail})."
+  warp-unsafe-hazard: "<red>Lava, fire, cactus or another hazard ({detail}) is right next to that spot."
+  warp-unsafe-lava-below: "<red>There is lava below that spot."
+  warp-unsafe-platform: "<red>That is a tiny platform high above the ground."
+  warp-unsafe-enclosed: "<red>That spot is a sealed room with no way out."
+  pwarp-usage: "<gray>/pwarp  <white>menu  <gray>|  /pwarp <name>  <gray>|  /pwarp set <name>  |  /pwarp delete <name>  |  /pwarp list  |  /pwarp info <name>"
+  pwarp-created: "<green>Player warp <white>{name} <green>created. Anyone can use <white>/pwarp {name}<green>."
+  pwarp-moved: "<green>Your warp <white>{name} <green>was moved here."
+  pwarp-name-taken: "<red>The warp name {name} is already taken."
+  pwarp-limit: "<red>You can only have {limit} player warp(s). Delete one with /pwarp delete <name> or get a higher rank."
+  pwarp-blocked-claim: "<red>You cannot make a warp inside someone else's claim."
+  pwarp-not-yours: "<red>That warp is not yours."
+  pwarp-no-economy: "<red>Making a warp costs rupees but the economy is not running. Ask an admin."
+  pwarp-cost-insufficient: "<red>A new player warp costs {cost} rupees and you do not have that much."
+  pwarp-cost-failed: "<red>Could not charge {cost} rupees. The warp was not made."
+  pwarp-charged: "<gray>Charged <white>{cost} <gray>rupees."
+  pwarp-owner-unsafe: "<yellow>Your warp <white>{name} <yellow>failed its safety check when someone tried to use it. Please fix it or move it."
+  pwarp-list: "<gold>Your warps <gray>({used}/{limit}): <white>{list}"
+  pwarp-info: "<gold>{name} <gray>by <white>{owner} <gray>| visits <white>{visits} <gray>| <white>{state}"
+
+  # claim blocks: buying, sending, delete confirmation
+  claim-none-yours: "<red>You have no claims."
+  claim-delete-cancelled: "<gray>Nothing was deleted."
+  cb-usage: "<red>Usage: /claim buy [amount]   /claim send <player> <amount>"
+  cb-buy-disabled: "<red>Buying claim blocks is turned off."
+  cb-buy-range: "<red>You can buy 1 to {max} blocks at a time."
+  cb-buy-cap: "<red>You reached the claim-block purchase limit. You can still buy {left}."
+  cb-no-economy: "<red>The economy is not running right now."
+  cb-buy-insufficient: "<red>That costs {cost} rupees and you do not have enough."
+  cb-buy-failed: "<red>Could not charge {cost} rupees. Nothing was bought."
+  cb-bought: "<green>Bought <white>{amount} <green>claim blocks for <white>{cost} <green>rupees. <gray>Free blocks: {remaining}"
+  cb-send-disabled: "<red>Sending claim blocks is turned off."
+  cb-send-playtime: "<red>You need {hours} hours of active play time before you can send claim blocks."
+  cb-send-self: "<red>You cannot send blocks to yourself."
+  cb-send-min: "<red>The smallest amount you can send is {min}."
+  cb-send-notenough: "<red>You only have {free} unused claim blocks. Blocks inside your claims cannot be sent (delete a claim to free them)."
+  cb-send-daily: "<red>Daily send limit reached. You can still send {left} today."
+  cb-sent: "<green>Sent <white>{amount} <green>claim blocks to <white>{player}<green>. <gray>Free blocks: {remaining}"
+  cb-received: "<green>You received <white>{amount} <green>claim blocks from <white>{player}<green>. <gray>Free blocks: {remaining}"

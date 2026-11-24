@@ -1,0 +1,117 @@
+name: ArkaSMPCore
+version: ${project.version}
+main: com.arka.smp.core.ArkaSMPCore
+api-version: '1.21'
+description: Homes, spawn, TPA, RTP, land claims and lag cleaner in one optimized plugin.
+authors: [Arka]
+softdepend: [PlaceholderAPI, Vault]
+
+commands:
+  sethome:
+    description: Set a home
+    usage: /sethome [name]
+  home:
+    description: Teleport to a home
+    usage: /home [name]
+  delhome:
+    description: Delete a home
+    usage: /delhome <name>
+  homes:
+    description: List your homes
+    usage: /homes
+  spawn:
+    description: Teleport to spawn
+    usage: /spawn
+  setspawn:
+    description: Set the server spawn
+    usage: /setspawn
+  tpa:
+    description: Request to teleport to a player
+    usage: /tpa <player>
+  tpahere:
+    description: Request a player to teleport to you
+    usage: /tpahere <player>
+  tpaccept:
+    description: Accept a teleport request
+    usage: /tpaccept [player]
+    aliases: [tpyes]
+  tpdeny:
+    description: Deny a teleport request
+    usage: /tpdeny [player]
+    aliases: [tpno]
+  tpcancel:
+    description: Cancel your outgoing teleport request
+    usage: /tpcancel
+  trapped:
+    description: Escape from inside someone else's claim
+    usage: /trapped
+    aliases: [stuck]
+  rtp:
+    description: Random teleport
+    usage: /rtp
+    aliases: [wild, randomtp]
+  claim:
+    description: Land claim management
+    usage: /claim [tool|info|blocks|list|show|delete|deleteall|trust|untrust|trustlist]
+    aliases: [landclaim, lc]
+  unclaim:
+    description: Delete the claim you stand in
+    usage: /unclaim
+  afk:
+    description: Toggle AFK status
+    usage: /afk
+  lag:
+    description: Show server performance
+    usage: /lag
+  arka:
+    description: ArkaSMPCore admin command
+    usage: /arka <menu|reload|clear|admin|version>
+  warp:
+    description: Open the server warps or teleport to one
+    usage: /warp [name]
+    aliases: [warps]
+  setwarp:
+    description: Create a server warp here (admins)
+    usage: /setwarp <name> [force]
+  delwarp:
+    description: Delete a server warp (admins)
+    usage: /delwarp <name>
+  pwarp:
+    description: Player warps
+    usage: /pwarp [name|set|delete|list|info]
+    aliases: [pw, playerwarp]
+
+permissions:
+  arka.admin:
+    description: Access to admin commands (reload, clear, setspawn)
+    default: op
+  arka.stats:
+    description: Open the server statistics dashboard (/arka stats)
+    default: op
+  arka.lag:
+    description: Use /lag
+    default: op
+  arka.bypass.warmup:
+    description: Skip teleport warmups
+    default: op
+  arka.bypass.cooldown:
+    description: Skip command cooldowns
+    default: op
+  arka.claims.bypass:
+    description: Build in anyone's claim
+    default: op
+  arka.afk.bypass:
+    description: Never marked AFK (staff, builders)
+    default: false
+  arka.leaderboard.hide:
+    description: Hide this player from the leaderboards
+    default: false
+  arka.bypass.combat:
+    description: Teleport while in combat
+    default: op
+  arka.warp.admin:
+    description: Create and delete server warps, delete any player warp
+    default: op
+  arka.warp.free:
+    description: Make player warps without paying
+    default: op
