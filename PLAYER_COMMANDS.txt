@@ -60,6 +60,24 @@ HOW TO CLAIM LAND
 
 Everyone starts with 300 claim blocks and earns 100 per hour of active (non-AFK) play.
 
+WARPS
+-----
+/warp                              Open the server warps menu          (alias: /warps)
+/warp <name>                       Teleport to a server warp (made by admins)
+/pwarp                             Open the player warps menu          (aliases: /pw, /playerwarp)
+/pwarp <name>                      Teleport to a player's warp
+/pwarp set <name>                  Make (or move) your own warp here. Costs rupees to make a new one.
+/pwarp delete <name>               Delete your warp
+/pwarp list                        List your warps and your limit
+/pwarp info <name>                 Owner and visits of a warp
+  Every warp is safety-checked before teleporting. Unsafe warps are refused.
+
+CLAIM BLOCKS: BUY AND SEND
+--------------------------
+/claim buy [amount]                Buy claim blocks with rupees (needs the economy plugin)
+/claim send <player> <amount>      Give unused claim blocks to another player
+/trapped                           Escape from inside someone else's claim   (alias: /stuck)
+
 OTHER
 -----
 /arka version                      Plugin version
