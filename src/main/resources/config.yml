@@ -330,7 +330,7 @@ menus:
     trust:
       material: PLAYER_HEAD
       name: "<aqua><bold>Trust a player"
-      lore: ["<gray>Let a friend build in the claim you are standing in"]
+      lore: ["<gray>Let a friend build in THIS claim only", "<gray>(not in your other claims)"]
     untrust:
       material: BARRIER
       name: "<red><bold>Remove trusted player"
@@ -437,16 +437,19 @@ messages:
   claim-removed-all: "<yellow>Deleted <white>{count} <yellow>claims."
   claim-not-yours: "<red>You do not own this claim."
   claim-none-here: "<red>You are not standing in a claim."
-  trust-added: "<green>{player} can now build in THIS claim only."
-  trust-added-all: "<green>{player} can now build in all your claims."
-  trust-removed-all: "<yellow>{player} was removed from all your claims."
+  trust-added: "<green>{player} can now build in this claim only: <white>{claim}<green>. Your other claims are not shared."
+  trust-removed-all: "<yellow>{player} was removed from <white>{count} <yellow>of your claims."
   trust-not-in-claim: "<red>Stand inside the claim you want to share first."
   claim-bypass-on: "<yellow>Claim bypass ON: you can build, break and open things in any claim. Run it again to turn off."
   claim-bypass-off: "<green>Claim bypass OFF: you are protected like everyone else."
-  trust-removed: "<yellow>{player} was removed from this claim."
+  trust-removed: "<yellow>{player} was removed from claim <white>{claim}<yellow>."
   trust-already: "<yellow>{player} is already trusted."
   trust-not-trusted: "<red>{player} is not trusted."
   trust-self: "<red>You cannot trust yourself."
+  trust-no-such-claim: "<red>You have no claim number {id}. /claim trustlist shows your claim numbers."
+  trustlist-title: "<gold><bold>Who you trusted, claim by claim"
+  trustlist-empty: "<gray>You have not trusted anybody. Stand in a claim and use <white>/claim trust [player]<gray>: it shares only that claim."
+  trustlist-hint: "<gray>Click <red>[untrust]<gray> to remove someone, or use <white>/claim untrust [player] [claim number|all]<gray>."
   claim-denied: "<red>This land belongs to {owner}."
   claim-unclaimed: "<green>Nobody owns this land. <gray>Use a golden shovel to claim it."
   claim-denied-chat: "<red>! This land is claimed by <white>{owner}<red>. You cannot build or break here. <gray>(Stuck inside? Use <white>/trapped<gray>)"

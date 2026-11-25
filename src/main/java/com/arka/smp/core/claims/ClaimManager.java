@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -350,8 +351,8 @@ public final class ClaimManager {
         return list.size();
     }
 
-    /** The claims a trust/untrust applies to: the one the owner stands in, or all of theirs. Null = not allowed. */
-    private List<Claim> trustScope(Player owner, boolean all) {
+    /** The claim the owner is standing in, if it is theirs. Tells them what is wrong and returns null otherwise. */
+    private Claim ownClaimHere(Player owner) {
         Claim here = claimAt(owner.getLocation());
         if (here == null) {
             plugin.messages().send(owner, "trust-not-in-claim");
@@ -361,40 +362,80 @@ public final class ClaimManager {
             plugin.messages().send(owner, "claim-not-yours");
             return null;
         }
-        return all ? new ArrayList<>(claimsOf(owner.getUniqueId())) : List.of(here);
+        return here;
     }
 
-    /** Trusts the player in the claim you are standing in (or in every claim of yours when all is true). */
-    public void trust(Player owner, OfflinePlayer target, boolean all) {
+    private static String claimLabel(Claim c) {
+        return "#" + c.id + " (" + c.minX + "," + c.minZ + ")-(" + c.maxX + "," + c.maxZ + ")";
+    }
+
+    /** Trusts the player in the ONE claim the owner is standing in. Never in any other claim of theirs. */
+    public void trust(Player owner, OfflinePlayer target) {
         String name = target.getName() != null ? target.getName() : ownerName(target.getUniqueId());
         if (target.getUniqueId().equals(owner.getUniqueId())) {
             plugin.messages().send(owner, "trust-self");
             return;
         }
-        List<Claim> scope = trustScope(owner, all);
-        if (scope == null) return;
-        boolean any = false;
-        for (Claim c : scope) any |= c.trusted.add(target.getUniqueId());
-        if (!any) {
+        Claim here = ownClaimHere(owner);
+        if (here == null) return;
+        if (!here.trusted.add(target.getUniqueId())) {
             plugin.messages().send(owner, "trust-already", "player", name);
             return;
         }
         changed();
-        plugin.messages().send(owner, all ? "trust-added-all" : "trust-added", "player", name);
+        plugin.messages().send(owner, "trust-added", "player", name, "claim", claimLabel(here));
     }
 
-    public void untrust(Player owner, OfflinePlayer target, boolean all) {
+    /**
+     * Removes the player's trust from ONE of the owner's claims: the one given by id (from /claim trustlist, works
+     * from anywhere), or the one the owner stands in when id is null.
+     */
+    public void untrust(Player owner, OfflinePlayer target, Integer id) {
         String name = target.getName() != null ? target.getName() : ownerName(target.getUniqueId());
-        List<Claim> scope = trustScope(owner, all);
-        if (scope == null) return;
-        boolean any = false;
-        for (Claim c : scope) any |= c.trusted.remove(target.getUniqueId());
-        if (!any) {
+        Claim c;
+        if (id == null) {
+            c = ownClaimHere(owner);
+        } else {
+            c = byId(id);
+            if (c == null || !c.owner.equals(owner.getUniqueId())) {
+                plugin.messages().send(owner, "trust-no-such-claim", "id", String.valueOf(id));
+                return;
+            }
+        }
+        if (c == null) return;
+        if (!c.trusted.remove(target.getUniqueId())) {
             plugin.messages().send(owner, "trust-not-trusted", "player", name);
             return;
         }
         changed();
-        plugin.messages().send(owner, all ? "trust-removed-all" : "trust-removed", "player", name);
+        plugin.messages().send(owner, "trust-removed", "player", name, "claim", claimLabel(c));
+    }
+
+    /** Removes the player's trust from every claim of the owner (for when a friend turns out not to be one). */
+    public void untrustEverywhere(Player owner, OfflinePlayer target) {
+        String name = target.getName() != null ? target.getName() : ownerName(target.getUniqueId());
+        int n = 0;
+        for (Claim c : claimsOf(owner.getUniqueId())) if (c.trusted.remove(target.getUniqueId())) n++;
+        if (n == 0) {
+            plugin.messages().send(owner, "trust-not-trusted", "player", name);
+            return;
+        }
+        changed();
+        plugin.messages().send(owner, "trust-removed-all", "player", name, "count", String.valueOf(n));
+    }
+
+    /** The owner's claims that share their land with somebody, the one they stand in first, then by id. */
+    public List<Claim> sharedClaims(Player owner) {
+        Claim here = claimAt(owner.getLocation());
+        List<Claim> out = new ArrayList<>();
+        for (Claim c : claimsOf(owner.getUniqueId())) if (!c.trusted.isEmpty()) out.add(c);
+        out.sort(Comparator.<Claim, Boolean>comparing(c -> c != here).thenComparingInt(c -> c.id));
+        return out;
+    }
+
+    /** Short description of a claim for lists: "#3 (10,20)-(40,50)". */
+    public String describe(Claim c) {
+        return claimLabel(c);
     }
 
     // ---- fake-block borders (only the viewing player sees them) ------------------------------

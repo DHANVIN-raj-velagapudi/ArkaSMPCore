@@ -3,6 +3,21 @@
 All notable changes to ArkaSMPCore. Versions follow `MAJOR.MINOR.PATCH`: a fix raises the last number, a new feature
 the middle one, a breaking change the first. Every release raises the version.
 
+## 1.4.0
+
+### Changed
+- **Trust is per claim.** `/claim trust <player>` now trusts the player in the ONE claim you are standing in, and
+  nowhere else. The `all` option is gone, so a friend can no longer be given every claim by mistake. Trust you
+  already gave keeps working exactly as before (it was already stored per claim).
+- `/claim trustlist` now lists every claim where you trusted somebody (claim number, corners, who), with a clickable
+  **[untrust]** next to each name. Before, it only showed the claim you stood in.
+- `/claim untrust <player>` removes the trust from the claim you stand in. `/claim untrust <player> <claim number>`
+  removes it from that claim from anywhere (numbers are in `/claim list` and `/claim trustlist`), and
+  `/claim untrust <player> all` removes it from every claim of yours.
+- `/claim list` shows each claim's number.
+- New messages: `trustlist-title`, `trustlist-empty`, `trustlist-hint`, `trust-no-such-claim`; `trust-added` and
+  `trust-removed` can show `{claim}`; `trust-added-all` is no longer used.
+
 ## 1.3.0
 
 ### Added

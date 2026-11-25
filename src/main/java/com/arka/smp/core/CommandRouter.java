@@ -239,12 +239,12 @@ public final class CommandRouter implements CommandExecutor, TabCompleter {
             case "list" -> {
                 StringBuilder sb = new StringBuilder();
                 for (var c : claims.claimsOf(p.getUniqueId())) {
-                    sb.append(c.world).append(" (").append(c.minX).append(",").append(c.minZ).append(")-(")
+                    sb.append("#").append(c.id).append(" ").append(c.world).append(" (").append(c.minX).append(",").append(c.minZ).append(")-(")
                             .append(c.maxX).append(",").append(c.maxZ).append(")  ");
                 }
                 msg.sendRaw(p, "<gray>{list}", "list", sb.length() == 0 ? "-" : sb.toString());
             }
-            case "trust", "untrust" -> {
+            case "trust" -> {
                 if (args.length < 2) {
                     ClaimsMenu.open(plugin, p);
                     return;
@@ -254,19 +254,51 @@ public final class CommandRouter implements CommandExecutor, TabCompleter {
                     msg.send(p, "unknown-player");
                     return;
                 }
-                boolean all = args.length > 2 && args[2].equalsIgnoreCase("all");
-                if (args[0].equalsIgnoreCase("trust")) claims.trust(p, target, all);
-                else claims.untrust(p, target, all);
+                // Trust is for the ONE claim you stand in. There is no "all my claims" any more.
+                claims.trust(p, target);
+            }
+            case "untrust" -> {
+                if (args.length < 2) {
+                    ClaimsMenu.open(plugin, p);
+                    return;
+                }
+                OfflinePlayer target = lookup(args[1]);
+                if (target == null) {
+                    msg.send(p, "unknown-player");
+                    return;
+                }
+                if (args.length > 2 && args[2].equalsIgnoreCase("all")) {
+                    claims.untrustEverywhere(p, target);
+                } else if (args.length > 2) {
+                    Long id = parseNumber(args[2]);
+                    if (id == null || id > Integer.MAX_VALUE) {
+                        msg.send(p, "trust-no-such-claim", "id", args[2]);
+                        return;
+                    }
+                    claims.untrust(p, target, id.intValue());
+                } else {
+                    claims.untrust(p, target, null);
+                }
             }
             case "trustlist" -> {
-                var here = claims.claimAt(p.getLocation());
-                if (here == null) {
-                    msg.send(p, "trust-not-in-claim");
+                var shared = claims.sharedClaims(p);
+                if (shared.isEmpty()) {
+                    msg.send(p, "trustlist-empty");
                     break;
                 }
-                StringBuilder sb = new StringBuilder();
-                for (UUID id : here.trusted) sb.append(claims.ownerName(id)).append(' ');
-                msg.sendRaw(p, "<gray>Trusted in this claim: <white>{list}", "list", sb.length() == 0 ? "-" : sb.toString());
+                var here = claims.claimAt(p.getLocation());
+                msg.send(p, "trustlist-title");
+                for (var c : shared) {
+                    msg.sendRaw(p, "<gray>{claim}{here}", "claim", claims.describe(c) + " " + c.world,
+                            "here", c == here ? " <green>(you are here)" : "");
+                    for (UUID id : c.trusted) {
+                        String n = claims.ownerName(id);
+                        msg.sendRaw(p, "<dark_gray>  - <white>{name} <red><click:run_command:'/claim untrust {name} {id}'>"
+                                + "<hover:show_text:'<gray>Click to remove {name} from this claim'>[untrust]</hover></click>",
+                                "name", n, "id", String.valueOf(c.id));
+                    }
+                }
+                msg.send(p, "trustlist-hint");
             }
             default -> ClaimsMenu.open(plugin, p);
         }
@@ -414,6 +446,10 @@ public final class CommandRouter implements CommandExecutor, TabCompleter {
                 && (args[0].equalsIgnoreCase("trust") || args[0].equalsIgnoreCase("untrust")
                 || args[0].equalsIgnoreCase("send"))) {
             Bukkit.getOnlinePlayers().forEach(o -> out.add(o.getName()));
+        } else if (args.length == 3 && name.equals("claim") && args[0].equalsIgnoreCase("untrust")
+                && sender instanceof Player tp) {
+            out.add("all");
+            plugin.claims().claimsOf(tp.getUniqueId()).forEach(c -> out.add(String.valueOf(c.id)));
         }
         out.removeIf(s -> !s.toLowerCase(Locale.ROOT).startsWith(last));
         return out;

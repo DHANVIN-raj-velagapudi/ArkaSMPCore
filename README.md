@@ -147,7 +147,9 @@ No permission is needed for any of these. The full list is also in [PLAYER_COMMA
 | `/afk` | Toggle AFK |
 | `/claim` | Claims menu (aliases `/landclaim`, `/lc`) |
 | `/claim tool`, `info`, `blocks`, `list`, `show`, `delete`, `deleteall` | Claim management (delete asks for confirmation) |
-| `/claim trust <player>`, `untrust <player>`, `trustlist` | Share a claim |
+| `/claim trust <player>` | Trust a player in the ONE claim you stand in (never your other claims) |
+| `/claim trustlist` | Every claim where you trusted someone, with who, and a clickable `[untrust]` |
+| `/claim untrust <player> [claim number or all]` | Remove trust from the claim you stand in, a claim by number (from trustlist, works from anywhere), or all of them |
 | `/claim buy [amount]` | Buy claim blocks with rupees (needs ArkaSMPEconomy) |
 | `/claim send <player> <amount>` | Give unused claim blocks to another player |
 | `/unclaim` | Delete the claim you stand in (asks first) |

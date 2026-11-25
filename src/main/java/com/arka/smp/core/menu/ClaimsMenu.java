@@ -114,7 +114,7 @@ public final class ClaimsMenu {
                 .sorted(Comparator.comparing(Player::getName, String.CASE_INSENSITIVE_ORDER))
                 .map(o -> (OfflinePlayer) o).toList();
         PlayerPicker.open(plugin, viewer, "menus.claims.trust-title", list, 0, (v, target) -> {
-            plugin.claims().trust(v, target, false);
+            plugin.claims().trust(v, target);
             open(plugin, v);
         }, pl -> open(plugin, pl));
     }
@@ -127,7 +127,7 @@ public final class ClaimsMenu {
         }
         List<OfflinePlayer> list = here.trusted.stream().map(Bukkit::getOfflinePlayer).toList();
         PlayerPicker.open(plugin, viewer, "menus.claims.untrust-title", list, 0, (v, target) -> {
-            plugin.claims().untrust(v, target, false);
+            plugin.claims().untrust(v, target, null);
             open(plugin, v);
         }, pl -> open(plugin, pl));
     }

@@ -46,9 +46,9 @@ LAND CLAIMS
 /claim show                        Show borders of the claim you stand in (glowstone)
 /claim delete                      Delete the claim you stand in (blocks returned)    (also: /unclaim)
 /claim deleteall                   Delete all your claims
-/claim trust <player>              Let a player build in your claims
-/claim untrust <player>            Remove a trusted player
-/claim trustlist                   List trusted players
+/claim trust <player>              Trust a player in the ONE claim you stand in
+/claim untrust <player> [id|all]   Remove trust (this claim, claim number, or all)
+/claim trustlist                   Who you trusted in which claim (click to untrust)
 
 HOW TO CLAIM LAND
 -----------------
