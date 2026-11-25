@@ -3,6 +3,15 @@
 All notable changes to ArkaSMPCore. Versions follow `MAJOR.MINOR.PATCH`: a fix raises the last number, a new feature
 the middle one, a breaking change the first. Every release raises the version.
 
+## 1.3.0
+
+### Added
+- **Play-time service** (`PlayTimeProvider`): other Arka plugins (ArkaSMPStyle: earned titles) can read a player's
+  active play time without touching Core's data. Nothing changes for players or admins.
+- **Combat service** (`CombatStatus`): other Arka plugins can ask Core's PvP combat lock whether a player is in combat
+  (ArkaSMPStyle refuses rank commands such as /anvil and /ec during a fight).
+- **Claim block service** (`ClaimBlockBonus`): lets ArkaSMPStyle give the monthly bonus claim blocks of the paid ranks.
+
 ## 1.2.0
 
 ### Added

@@ -72,6 +72,10 @@ public final class ArkaSMPCore extends JavaPlugin {
         messages = new Messages(this);
         cooldowns = new Cooldowns();
         players = new Players(this);
+        getServer().getServicesManager().register(com.arka.smp.core.api.PlayTimeProvider.class,
+                id -> players.playTicks(id), this, org.bukkit.plugin.ServicePriority.Normal);
+        getServer().getServicesManager().register(com.arka.smp.core.api.ClaimBlockBonus.class,
+                (id, blocks) -> players.addBonus(id, blocks), this, org.bukkit.plugin.ServicePriority.Normal);
         stats = new ServerStats(this);
         teleports = new TeleportService(this);
         homes = new HomeManager(this);
@@ -86,6 +90,8 @@ public final class ArkaSMPCore extends JavaPlugin {
         cleaner = new CleanerManager(this);
         leaderboards = new LeaderboardManager(this);
         afk = new AfkManager(this);
+        getServer().getServicesManager().register(com.arka.smp.core.api.CombatStatus.class,
+                id -> afk.inCombat(id), this, org.bukkit.plugin.ServicePriority.Normal);
 
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvents(players, this);
