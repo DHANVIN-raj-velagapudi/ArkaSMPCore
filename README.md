@@ -35,6 +35,7 @@ buying claim blocks).
 11. [Replacing other plugins](#replacing-other-plugins)
 12. [Bedrock / Geyser notes](#bedrock--geyser-notes)
 13. [Versions and updating](#versions-and-updating)
+    - [Safe upgrades and downgrades](#safe-upgrades-and-downgrades)
 14. [Status and known limits](#status-and-known-limits)
 15. [Building from source](#building-from-source)
 16. [Contributing and support](#contributing-and-support)
@@ -327,6 +328,29 @@ If your `config.yml` has a YAML mistake, it is left exactly as it is and the con
 
 Update steps: stop the server, replace the jar, start the server, read the console for the "config.yml updated"
 lines. Update ArkaSMPCore and [ArkaSMPEconomy](https://github.com/DHANVIN-raj-velagapudi/ArkaSMPEconomy) together.
+
+---
+
+## Safe upgrades and downgrades
+
+Your saved data is protected every time the version changes. The plugin folder contains
+`data-version.properties`, which records the plugin version that last used the data and its **data format**
+number. Do not edit it.
+
+| Situation | What happens |
+|---|---|
+| Same version | Nothing. |
+| **Upgrade** (or downgrade) to another version | Before anything is loaded, a snapshot of the data files is copied to `data-backups/<time>_<old>-to-<new>/` (the last 5 snapshots are kept), then the new version is recorded. |
+| An **older jar finds data from a newer data format** | The plugin refuses to start and says so in the console. It changes nothing, so the older jar can never rewrite data it does not understand. Put the newer jar back, or copy the files from a snapshot in `data-backups/` back into the plugin folder. |
+| A data file that cannot be read | It is kept as `<name>.broken-<time>` (never overwritten) and the plugin starts with an empty one. |
+
+**Downgrading** to an older version is allowed when the data format is the same, but it is not officially
+supported: data created by newer features is simply ignored by the older jar, and may be dropped when the older jar
+saves. That is why a snapshot is taken first. To go back for real, stop the server, put the older jar in, and (if
+you want the old data too) copy the files from the matching `data-backups/` snapshot over the plugin folder.
+
+**Before any upgrade:** stop the server, keep a copy of the whole plugin folder (or rely on
+[McBackup](https://github.com/DHANVIN-raj-velagapudi/McBackup)), replace the jar, start, and read the console.
 
 ---
 

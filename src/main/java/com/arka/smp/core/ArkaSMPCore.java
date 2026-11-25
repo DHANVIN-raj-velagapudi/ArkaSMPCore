@@ -30,6 +30,8 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
 public final class ArkaSMPCore extends JavaPlugin {
+    /** Raise this when a release changes how saved data is written in a way older jars cannot read. */
+    private static final int DATA_FORMAT = 1;
     /** Sections whose entries belong to the admin: a rank they deleted is not added back by a config update. */
     private static final java.util.Set<String> ADMIN_OWNED = java.util.Set.of("homes.ranks", "pwarps.ranks");
     private static final String[] COMMANDS = {
@@ -59,6 +61,11 @@ public final class ArkaSMPCore extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // Data safety first: snapshot the data on every version change, and refuse data from a newer format.
+        if (!DataGuard.check(getDataFolder(), getPluginMeta().getVersion(), DATA_FORMAT, getLogger()).proceed()) {
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         migrateLegacyConfig();
         ConfigUpdater.update(getDataFolder(), () -> getResource("config.yml"), getPluginMeta().getVersion(),
                 getLogger(), ADMIN_OWNED);

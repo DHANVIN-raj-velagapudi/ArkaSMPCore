@@ -3,6 +3,17 @@
 All notable changes to ArkaSMPCore. Versions follow `MAJOR.MINOR.PATCH`: a fix raises the last number, a new feature
 the middle one, a breaking change the first. Every release raises the version.
 
+## 1.2.0
+
+### Added
+- **Safe upgrades and downgrades.** `data-version.properties` records the plugin version and data format. On every
+  version change a snapshot of the data files is saved to `data-backups/` first (last 5 kept). An older jar that
+  finds data from a newer format refuses to start instead of damaging it.
+
+### Fixed
+- An unreadable data file is kept as `<name>.broken-<time>` and never overwritten by a later failure.
+- A config downgrade is reported as such in the console; all your settings are kept.
+
 ## 1.1.0
 
 ### Added
