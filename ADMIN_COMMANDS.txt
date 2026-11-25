@@ -9,6 +9,7 @@ GENERAL
 /setspawn                         Set the server spawn where you stand
 /lag                              TPS, MSPT, RAM, per-world counts   (permission: arka.lag)
 /arka admin help                  List admin commands in game
+/arka admin kit <player>          Give the starter kit again (online player)
 
 CLAIM BLOCKS
 ------------

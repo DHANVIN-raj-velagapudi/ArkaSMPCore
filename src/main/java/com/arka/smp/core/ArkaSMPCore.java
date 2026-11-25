@@ -46,6 +46,7 @@ public final class ArkaSMPCore extends JavaPlugin {
     private TeleportService teleports;
     private HomeManager homes;
     private SpawnManager spawn;
+    private com.arka.smp.core.kit.StarterKit starterKit;
     private TpaManager tpa;
     private RtpManager rtp;
     private TrappedManager trapped;
@@ -80,6 +81,7 @@ public final class ArkaSMPCore extends JavaPlugin {
         teleports = new TeleportService(this);
         homes = new HomeManager(this);
         spawn = new SpawnManager(this);
+        starterKit = new com.arka.smp.core.kit.StarterKit(this);
         tpa = new TpaManager(this);
         rtp = new RtpManager(this);
         trapped = new TrappedManager(this);
@@ -98,6 +100,7 @@ public final class ArkaSMPCore extends JavaPlugin {
         pm.registerEvents(stats, this);
         pm.registerEvents(teleports, this);
         pm.registerEvents(spawn, this);
+        pm.registerEvents(starterKit, this);
         pm.registerEvents(tpa, this);
         pm.registerEvents(claimTool, this);
         pm.registerEvents(leaderboards, this);
@@ -201,6 +204,7 @@ public final class ArkaSMPCore extends JavaPlugin {
     public TeleportService teleports() { return teleports; }
     public HomeManager homes() { return homes; }
     public SpawnManager spawn() { return spawn; }
+    public com.arka.smp.core.kit.StarterKit starterKit() { return starterKit; }
     public TpaManager tpa() { return tpa; }
     public RtpManager rtp() { return rtp; }
     public TrappedManager trapped() { return trapped; }

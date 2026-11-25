@@ -73,6 +73,11 @@ buying claim blocks).
 - `/trapped` gets a player out of someone else's claim safely
 - Staff bypass needs the permission **and** an explicit toggle, so admins are protected by default
 
+### Starter kit
+- New players get a configurable kit on their first join: stone tools, leather armour (worn), 32 cooked steak, a
+  crafting table and the golden shovel for claiming. Edit `starter-kit.items` in config.yml; admins can re-give it with
+  `/arka admin kit <player>`
+
 ### Players and server health
 - **Strict AFK**: only real input counts (not being pushed by water or pistons), macro detection, no play time or
   rewards while AFK, optional kick, reduced chunk load for AFK players

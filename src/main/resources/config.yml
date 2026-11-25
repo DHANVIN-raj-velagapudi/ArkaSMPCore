@@ -42,6 +42,27 @@ spawn:
   teleport-on-first-join: true  # new players start at /setspawn
   teleport-on-respawn: true     # after death (only if they have no bed/anchor)
 
+# ────────────────────────────────── STARTER KIT ──────────────────────────────
+# Given once, the first time a player ever joins. Each line is MATERIAL or MATERIAL:amount.
+# Armour is worn automatically; anything that does not fit in the inventory drops at their feet.
+# An admin can give it again with /arka admin kit <player>.
+starter-kit:
+  enabled: true
+  wear-armor: true
+  items:
+    - STONE_SWORD
+    - STONE_PICKAXE
+    - STONE_AXE
+    - STONE_SHOVEL
+    - STONE_HOE
+    - LEATHER_HELMET
+    - LEATHER_CHESTPLATE
+    - LEATHER_LEGGINGS
+    - LEATHER_BOOTS
+    - COOKED_BEEF:32          # cooked steak
+    - GOLDEN_SHOVEL           # the land claim tool
+    - CRAFTING_TABLE
+
 
 # ────────────────────────────────── TPA REQUESTS ─────────────────────────────
 tpa:
@@ -423,6 +444,7 @@ messages:
 
   # claims
   claim-tool-given: "<gold>Claim tool ready. <gray>Right-click one corner, then the opposite corner. Sneak + right-click cancels."
+  starter-kit-given: "<gold>Welcome! <gray>You got a starter kit: stone tools, leather armour, 32 steak, a crafting table and a <white>golden shovel<gray> to claim your land (<white>/claim<gray>)."
   claim-corner-1: "<green>First corner set at <white>{x}, {z}<green>. Now right-click the opposite corner."
   claim-selection-cancelled: "<yellow>Claim selection cancelled."
   claim-created: "<green>Claim created: <white>{w}x{l} <gray>({area} blocks). <white>{remaining} <gray>claim blocks left."

@@ -3,6 +3,16 @@
 All notable changes to ArkaSMPCore. Versions follow `MAJOR.MINOR.PATCH`: a fix raises the last number, a new feature
 the middle one, a breaking change the first. Every release raises the version.
 
+## 1.5.0
+
+### Added
+- **Starter kit.** A player joining for the very first time gets a full stone tool set (sword, pickaxe, axe, shovel,
+  hoe), full leather armour (worn automatically), 32 cooked steak, a golden shovel (the claim tool) and a crafting
+  table, with a welcome message. The items are a list in `config.yml` (`starter-kit.items`, entries like
+  `COOKED_BEEF:32`), and `starter-kit.enabled: false` turns it off. Players who have already joined before are not
+  given anything.
+- `/arka admin kit <player>` gives the kit again to an online player.
+
 ## 1.4.0
 
 ### Changed

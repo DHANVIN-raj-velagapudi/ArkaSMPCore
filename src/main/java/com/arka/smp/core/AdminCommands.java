@@ -17,7 +17,7 @@ import java.util.UUID;
 /** /arka admin ... (permission arka.admin). */
 public final class AdminCommands {
     public static final List<String> SUBS = List.of("claimblocks", "homelimit", "claims", "deleteclaim",
-            "deleteclaims", "claimtp", "homes", "home", "delhome", "resetcooldown", "leaderboard", "afk", "bypass", "get", "set", "help");
+            "deleteclaims", "claimtp", "homes", "home", "delhome", "resetcooldown", "leaderboard", "afk", "bypass", "kit", "get", "set", "help");
 
     private final ArkaSMPCore plugin;
 
@@ -171,6 +171,20 @@ public final class AdminCommands {
                 Object v = plugin.getConfig().get(a[1]);
                 say(s, "<gray>{path} = <white>{v}", "path", a[1], "v", String.valueOf(v));
             }
+            case "kit" -> {
+                if (a.length < 2) {
+                    say(s, "<red>/arka admin kit <player> <gray>(gives the starter kit again)");
+                    return;
+                }
+                Player t = Bukkit.getPlayerExact(a[1]);
+                if (t == null) {
+                    say(s, "<red>{p} must be online.", "p", a[1]);
+                    return;
+                }
+                int n = plugin.starterKit().give(t);
+                plugin.messages().send(t, "starter-kit-given");
+                say(s, "<green>Gave the starter kit ({n} items) to {p}.", "n", String.valueOf(n), "p", t.getName());
+            }
             case "afk" -> {
                 if (a.length < 2) {
                     say(s, "<red>/arka admin afk <player>");
@@ -203,6 +217,7 @@ public final class AdminCommands {
                 say(s, "<white>claims <player> <gray>| <white>deleteclaim [id] <gray>| <white>deleteclaims <player> <gray>| <white>claimtp <id>");
                 say(s, "<white>homes <player> <gray>| <white>home <player> <name> <gray>| <white>delhome <player> <name>");
                 say(s, "<white>resetcooldown <player> <gray>| <white>leaderboard <refresh|reseed>");
+                say(s, "<white>kit <player> <gray>(give the starter kit again)");
                 say(s, "<white>get <path> <gray>| <white>set <path> <value> <gray>(edit config.yml, e.g. claims.blocks-per-hour 150)");
             }
         }
