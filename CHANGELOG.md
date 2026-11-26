@@ -3,6 +3,33 @@
 All notable changes to ArkaSMPCore. Versions follow `MAJOR.MINOR.PATCH`: a fix raises the last number, a new feature
 the middle one, a breaking change the first. Every release raises the version.
 
+## 1.7.0
+
+### Added
+- **Safe landing check for /tpa and /tpahere.** When a request is accepted, the exact spot the teleport would land on
+  is checked with the same safety check warps and `/rtp` use (lava, fire, cactus, magma, void, a block at feet or head,
+  no floor, a tiny platform over a long drop, a sealed cell). If it is unsafe, nobody is moved, both players are told
+  why, and the request stays open so the player standing there can move to safe ground and accept again before it
+  expires. The request window shows a red "landing spot looks UNSAFE" warning before you click Accept.
+- Config: `tpa.safety-check` (default true; false turns the check off), and the messages `tpa-unsafe-yours`,
+  `tpa-unsafe-theirs` and `menus.tpa-request.unsafe-warning` / `unsafe-accept`.
+
+### Changed
+- The warp safety messages are reused for TPA, so they follow `warps.safety` settings.
+- If your `menus.tpa-request.world.lore` was created by 1.6.0, add the line `"{unsafe-line}"` to it to show the warning
+  on the world icon (the Accept button shows it anyway).
+
+## 1.6.0
+
+### Added
+- **Teleport request window.** When someone sends you `/tpa` or `/tpahere`, a window opens ("Incoming TPA Request" /
+  "Incoming TPAHERE Request"): a red **Deny** pane on the left, a green **Accept** pane on the right, the sender's
+  world and **exact X Y Z coordinates** with the distance from you, the sender's head with what they want and a
+  "Beware of TP traps" warning, and a feather showing the seconds left. The chat message with clickable
+  Accept/Deny is still sent. If you already have another window open, the request window is not forced on you.
+- The same window opens from `/tpa` -> *Incoming requests* when you pick a sender.
+- Config: `tpa.open-menu-on-request` (true/false) and the whole `menus.tpa-request` section for every text and icon.
+
 ## 1.5.0
 
 ### Added

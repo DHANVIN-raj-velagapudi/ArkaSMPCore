@@ -68,6 +68,8 @@ starter-kit:
 tpa:
   timeout: 60               # seconds before a request expires
   cooldown: 10              # seconds between sending requests
+  open-menu-on-request: true  # open the request window (with exact coordinates) for the player who receives a request
+  safety-check: true          # before a teleport, check the landing spot (lava, void, trap...) like warps do; unsafe = refused
 
 
 # ─────────────────────────────── RANDOM TELEPORT ─────────────────────────────
@@ -305,6 +307,45 @@ menus:
       name: "<white>Back"
       lore: []
     confirm-title: "<dark_gray>Delete {name}?"
+  # The window a player gets for one incoming /tpa or /tpahere request. Placeholders: {player} {world} {dimension}
+  # {x} {y} {z} (the SENDER's exact block position when the window opened) {distance} {seconds} {type}.
+  tpa-request:
+    title-tpa: "<dark_gray>Incoming TPA Request"
+    title-tpahere: "<dark_gray>Incoming TPAHERE Request"
+    deny:
+      material: RED_STAINED_GLASS_PANE
+      name: "<red><bold>Deny"
+      lore: ["<gray>Say no. Nothing happens."]
+    accept:
+      material: LIME_STAINED_GLASS_PANE
+      name: "<green><bold>Accept"
+      lore: ["<gray>Say yes and the teleport starts."]
+    world:
+      name: "<green>{dimension}"
+      lore:
+        - "<white>Sender's world: <aqua>{world}"
+        - "<white>Sender is at: <yellow>X {x}  Y {y}  Z {z}"
+        - "{distance-line}"
+        - "{unsafe-line}"
+    info:
+      name: "<aqua><bold>Request Info"
+      lore:
+        - "<aqua>{player} <white>{wants}"
+        - ""
+        - "<red>⚠ <gray>Beware of TP traps!"
+    time:
+      material: FEATHER
+      name: "<white><bold>Time left"
+      lore: ["<gray>This request ends in <yellow>{seconds}s"]
+    unsafe-warning: "<red><bold>⚠ The landing spot looks UNSAFE"
+    unsafe-accept: "<red>Unsafe landing: the teleport will be refused."
+    wants-tpa: "wants to TP to you"
+    wants-tpahere: "wants you to TP to them"
+    same-world: "<white>Distance from you: <yellow>{distance} blocks"
+    other-world: "<white>Distance from you: <gray>different world"
+    dimension-normal: "Overworld"
+    dimension-nether: "The Nether"
+    dimension-end: "The End"
   tpa:
     title: "<dark_gray>Teleport Requests"
     players:
@@ -435,6 +476,8 @@ messages:
   tpa-denied-you: "<red>{player} denied your request."
   tpa-denied: "<yellow>Request denied."
   tpa-cancelled: "<yellow>Request cancelled."
+  tpa-unsafe-yours: "<red>Teleport cancelled: the spot you are standing on is not safe for a visitor. Move to solid, safe ground, then accept again."
+  tpa-unsafe-theirs: "<red>Teleport cancelled: the spot <white>{player}<red> is standing on is not safe. Ask them to move, then accept again."
 
   # rtp
   rtp-searching: "<yellow>Looking for a safe spot..."

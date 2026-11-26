@@ -59,21 +59,7 @@ public final class TpaMenu {
         List<OfflinePlayer> senders = plugin.tpa().incoming(viewer.getUniqueId()).stream()
                 .map(r -> Bukkit.getOfflinePlayer(r.from())).toList();
         PlayerPicker.open(plugin, viewer, "menus.tpa.requests-title", senders, 0,
-                (v, sender) -> answer(plugin, v, sender.getUniqueId(), sender.getName()), pl -> open(plugin, pl));
+                (v, sender) -> TpaRequestMenu.open(plugin, v, sender.getUniqueId()), pl -> open(plugin, pl));
     }
 
-    private static void answer(ArkaSMPCore plugin, Player viewer, UUID sender, String name) {
-        Menu menu = new Menu(plugin.messages().mm(plugin.getConfig().getString("menus.tpa.choose-title", "{player}"),
-                "player", name == null ? "?" : name), 3);
-        menu.set(11, Items.cfg(plugin, "menus.tpa.accept"), v -> {
-            v.closeInventory();
-            plugin.tpa().accept(v, sender);
-        });
-        menu.set(15, Items.cfg(plugin, "menus.tpa.deny"), v -> {
-            v.closeInventory();
-            plugin.tpa().deny(v, sender);
-        });
-        menu.fill(Items.filler());
-        menu.open(viewer);
-    }
 }

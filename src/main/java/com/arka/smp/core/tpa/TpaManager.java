@@ -1,7 +1,10 @@
 package com.arka.smp.core.tpa;
 
 import com.arka.smp.core.ArkaSMPCore;
+import com.arka.smp.core.warps.WarpManager;
+import com.arka.smp.core.warps.WarpSafety;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -49,6 +52,12 @@ public final class TpaManager implements Listener {
                 new Request(from.getUniqueId(), to.getUniqueId(), type, System.currentTimeMillis() + timeoutMillis()));
         plugin.messages().send(from, type == Type.TPA ? "tpa-sent" : "tpa-here-sent", "player", to.getName());
         plugin.messages().send(to, type == Type.TPA ? "tpa-received" : "tpa-here-received", "player", from.getName());
+        // Open the request window for them, unless they are busy in another window (the chat message is there anyway).
+        if (plugin.getConfig().getBoolean("tpa.open-menu-on-request", true)
+                && to.getOpenInventory().getType() == org.bukkit.event.inventory.InventoryType.CRAFTING) {
+            Request made = find(to, from.getUniqueId());
+            if (made != null) com.arka.smp.core.menu.TpaRequestMenu.open(plugin, to, made, from);
+        }
     }
 
     /** Pending requests for a target, newest first, expired ones removed. */
@@ -64,6 +73,11 @@ public final class TpaManager implements Listener {
         List<Request> list = new ArrayList<>(map.values());
         list.sort((a, b) -> Long.compare(b.expires(), a.expires()));
         return list;
+    }
+
+    /** The pending request from this sender to this target, or null. */
+    public Request get(Player target, UUID sender) {
+        return find(target, sender);
     }
 
     private Request find(Player target, UUID senderOrNull) {
@@ -87,19 +101,39 @@ public final class TpaManager implements Listener {
             plugin.messages().send(target, "tpa-none");
             return;
         }
-        remove(r);
         Player sender = Bukkit.getPlayer(r.from());
         if (sender == null) {
+            remove(r);
             plugin.messages().send(target, "unknown-player");
             return;
         }
+        // Where the walker will land, and whose feet that is: TPA walks to the target, TPAHERE to the sender.
+        boolean toTarget = r.type() == Type.TPA;
+        Player walker = toTarget ? sender : target;
+        Player host = toTarget ? target : sender;
+        Location dest = host.getLocation();
+        WarpSafety.Result safe = landingCheck(dest);
+        if (!safe.safe()) {
+            // The request stays open: the host can move to a safe spot and it can be accepted again before it expires.
+            var msg = plugin.messages();
+            msg.send(host, "tpa-unsafe-yours");
+            msg.send(host, WarpManager.key(safe.problem()), "detail", safe.detail());
+            Player other = host == target ? sender : target;
+            msg.send(other, "tpa-unsafe-theirs", "player", host.getName());
+            msg.send(other, WarpManager.key(safe.problem()), "detail", safe.detail());
+            plugin.getLogger().info("TPA refused (unsafe landing at " + host.getName() + "): " + safe.problem());
+            return;
+        }
+        remove(r);
         plugin.messages().send(target, "tpa-accepted");
         plugin.messages().send(sender, "tpa-accepted-you", "player", target.getName());
-        if (r.type() == Type.TPA) {
-            plugin.teleports().teleport(sender, target.getLocation(), null);
-        } else {
-            plugin.teleports().teleport(target, sender.getLocation(), null);
-        }
+        plugin.teleports().teleport(walker, dest, null);
+    }
+
+    /** Whether it is safe to land at this spot (always OK when tpa.safety-check is off). */
+    public WarpSafety.Result landingCheck(Location dest) {
+        if (!plugin.getConfig().getBoolean("tpa.safety-check", true)) return WarpSafety.Result.OK;
+        return WarpSafety.check(WarpSafety.normalize(dest), plugin.warps().settings());
     }
 
     public void deny(Player target, UUID senderOrNull) {

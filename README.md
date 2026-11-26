@@ -49,6 +49,11 @@ buying claim blocks).
 - **Homes** (`/sethome`, `/home`, `/homes`, `/delhome`) with per-rank limits and a tap-only menu
 - **Spawn** (`/spawn`, `/setspawn`), first-join and respawn teleport
 - **TPA** (`/tpa`, `/tpahere`, `/tpaccept`, `/tpdeny`, `/tpcancel`) with clickable Accept/Deny in chat and a menu
+  - The player who receives a request gets an **Incoming TPA / TPAHERE Request** window: Deny on the left, Accept on
+    the right, the sender's world, their **exact X Y Z** and the distance, who sent it, what they want and the time left
+    (`tpa.open-menu-on-request`, texts under `menus.tpa-request`)
+  - **Safe landing check**: an accepted request is refused (and stays open) if the landing spot has lava, void, a trap and so
+    on, with a red warning in the window (`tpa.safety-check`)
 - **RTP** (`/rtp`): random safe spot between a min and max radius, never inside a claim, per-world disable list
 - Shared rules for all teleports: warm-up, cancel on move or damage, cooldowns, no teleporting out of PvP
 

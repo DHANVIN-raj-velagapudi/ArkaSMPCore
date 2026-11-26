@@ -200,7 +200,7 @@ public final class WarpManager {
     }
 
     /** Safety message key for a problem. */
-    static String key(WarpSafety.Problem p) {
+    public static String key(WarpSafety.Problem p) {
         return "warp-unsafe-" + p.name().toLowerCase(Locale.ROOT).replace('_', '-');
     }
 
