@@ -3,6 +3,20 @@
 All notable changes to ArkaSMPCore. Versions follow `MAJOR.MINOR.PATCH`: a fix raises the last number, a new feature
 the middle one, a breaking change the first. Every release raises the version.
 
+## 1.10.0
+
+### Added
+- **Play time as text.** Under 1 hour only minutes (`45M`), from 1 hour hours and minutes (`3HR 20M`), from 24 hours days
+  and hours with no minutes (`2 day 5HRS`). The wording is in `config.yml` under `playtime`
+  (`format-minutes`, `format-hours`, `format-days`, using `{d}` `{h}` `{m}`).
+- New placeholder `%arka_playtime%` (your active play time in that format).
+- New service `com.arka.smp.core.api.PlayTimeFormat` (`format(ticks)`): other Arka plugins can load it from Bukkit's
+  ServicesManager and show play time the same way, next to `PlayTimeProvider.activeTicks(id)`.
+
+### Changed
+- The **playtime leaderboard** now uses the same format. The old `leaderboards.playtime-format` and
+  `leaderboards.playtime-days-format` options are no longer used (they can stay in your config, nothing reads them).
+
 ## 1.9.0
 
 ### Changed

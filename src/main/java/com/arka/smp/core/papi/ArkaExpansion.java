@@ -17,6 +17,7 @@ import java.util.UUID;
  * %arka_homes%              homes set
  * %arka_homes_limit%        homes allowed
  * %arka_playhours%          hours played
+ * %arka_playtime%           active play time as text: 45M, 3HR 20M, 2 day 5HRS
  * %arka_blocks_per_hour%    claim blocks earned per hour
  * %arka_afk%                the AFK tag while AFK, empty otherwise
  * %arka_week_hours%         your active play time in the last 7 days
@@ -101,6 +102,8 @@ public final class ArkaExpansion extends PlaceholderExpansion {
                 return String.valueOf(plugin.homes().names(id).size());
             case "homes_limit":
                 return String.valueOf(plugin.homes().cachedLimit(id));
+            case "playtime":
+                return plugin.formatPlayTime(players.playTicks(id));
             case "playhours":
                 return String.format(Locale.ROOT, "%.1f", players.playTicks(id) / 72000.0);
             case "week_hours":

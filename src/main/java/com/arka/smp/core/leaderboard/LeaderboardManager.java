@@ -300,14 +300,8 @@ public final class LeaderboardManager implements Listener {
         switch (c) {
             case MONEY:
                 return String.format(Locale.US, cfg.getString("leaderboards.money-format", "$%,.0f"), v);
-            case PLAYTIME: {
-                long minutes = (long) (v / 1200.0);
-                long d = minutes / 1440, h = (minutes % 1440) / 60, m = minutes % 60;
-                String f = d > 0 ? cfg.getString("leaderboards.playtime-days-format", "{d}d {h}h")
-                        : cfg.getString("leaderboards.playtime-format", "{h}h {m}m");
-                return f.replace("{d}", String.valueOf(d)).replace("{h}", String.valueOf(h))
-                        .replace("{m}", String.valueOf(m));
-            }
+            case PLAYTIME:
+                return plugin.formatPlayTime((long) v);   // 45M, then 3HR 20M, then 2 day 5HRS (config: playtime.*)
             default:
                 return String.format(Locale.US, "%,d", (long) v);
         }

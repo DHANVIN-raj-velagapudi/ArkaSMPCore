@@ -88,6 +88,8 @@ public final class ArkaSMPCore extends JavaPlugin {
         players = new Players(this);
         getServer().getServicesManager().register(com.arka.smp.core.api.PlayTimeProvider.class,
                 id -> players.playTicks(id), this, org.bukkit.plugin.ServicePriority.Normal);
+        getServer().getServicesManager().register(com.arka.smp.core.api.PlayTimeFormat.class,
+                this::formatPlayTime, this, org.bukkit.plugin.ServicePriority.Normal);
         getServer().getServicesManager().register(com.arka.smp.core.api.ClaimBlockBonus.class,
                 (id, blocks) -> players.addBonus(id, blocks), this, org.bukkit.plugin.ServicePriority.Normal);
         stats = new ServerStats(this);
@@ -216,6 +218,13 @@ public final class ArkaSMPCore extends JavaPlugin {
     public Messages messages() { return messages; }
     public Cooldowns cooldowns() { return cooldowns; }
     public Players players() { return players; }
+
+    /** Play time in ticks as text, with the wording from config.yml (playtime.*): "45M", "3HR 20M", "2 day 5HRS". */
+    public String formatPlayTime(long ticks) {
+        var c = getConfig();
+        return PlayTimes.format(ticks, c.getString("playtime.format-minutes", PlayTimes.MINUTES),
+                c.getString("playtime.format-hours", PlayTimes.HOURS), c.getString("playtime.format-days", PlayTimes.DAYS));
+    }
     public TeleportService teleports() { return teleports; }
     public HomeManager homes() { return homes; }
     public SpawnManager spawn() { return spawn; }
