@@ -301,7 +301,7 @@ public final class LeaderboardManager implements Listener {
             case MONEY:
                 return String.format(Locale.US, cfg.getString("leaderboards.money-format", "$%,.0f"), v);
             case PLAYTIME:
-                return plugin.formatPlayTime((long) v);   // 45M, then 3HR 20M, then 2 day 5HRS (config: playtime.*)
+                return plugin.formatPlayTime((long) v);   // 45m, then 3h 20m, then 2d 5h
             default:
                 return String.format(Locale.US, "%,d", (long) v);
         }

@@ -195,17 +195,7 @@ leaderboards:
   empty-value: "-"
   unranked: "-"             # shown as your position if you are hidden / unknown
   money-format: "$%,.0f"    # Java format: "$%,.2f" for cents, "%,.0f coins" etc.
-  # Play time on the leaderboards uses the wording in the "playtime" section below.
-
-
-# ───────────────────────────────── PLAY TIME TEXT ────────────────────────────
-# How play time is written everywhere (leaderboards, %arka_playtime%, other Arka plugins).
-# Under 1 hour only minutes, from 1 hour hours and minutes, from 24 hours days and hours (no minutes).
-# Use {d} days, {h} hours, {m} minutes.
-playtime:
-  format-minutes: "{m}M"            # 45M
-  format-hours: "{h}HR {m}M"        # 3HR 20M
-  format-days: "{d} day {h}HRS"     # 2 day 5HRS
+  # Play time on the leaderboards is written like 45m, 3h 20m, 2d 5h (the same everywhere).
 
 
 # ─────────────────────────────────────── AFK ─────────────────────────────────

@@ -17,7 +17,7 @@ import java.util.UUID;
  * %arka_homes%              homes set
  * %arka_homes_limit%        homes allowed
  * %arka_playhours%          hours played
- * %arka_playtime%           active play time as text: 45M, 3HR 20M, 2 day 5HRS
+ * %arka_playtime%           active play time as text: 45m, 3h 20m, 2d 5h
  * %arka_blocks_per_hour%    claim blocks earned per hour
  * %arka_afk%                the AFK tag while AFK, empty otherwise
  * %arka_week_hours%         your active play time in the last 7 days

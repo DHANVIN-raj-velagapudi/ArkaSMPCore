@@ -219,11 +219,9 @@ public final class ArkaSMPCore extends JavaPlugin {
     public Cooldowns cooldowns() { return cooldowns; }
     public Players players() { return players; }
 
-    /** Play time in ticks as text, with the wording from config.yml (playtime.*): "45M", "3HR 20M", "2 day 5HRS". */
+    /** Play time in ticks as text: "45m", "3h 20m", "2d 5h". The same text the API and the placeholder give. */
     public String formatPlayTime(long ticks) {
-        var c = getConfig();
-        return PlayTimes.format(ticks, c.getString("playtime.format-minutes", PlayTimes.MINUTES),
-                c.getString("playtime.format-hours", PlayTimes.HOURS), c.getString("playtime.format-days", PlayTimes.DAYS));
+        return PlayTimes.compact(ticks);
     }
     public TeleportService teleports() { return teleports; }
     public HomeManager homes() { return homes; }

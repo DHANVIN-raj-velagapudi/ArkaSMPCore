@@ -266,7 +266,7 @@ Use them in TAB, DecentHolograms, scoreboards and chat. Identifier: `arka`.
 | `%arka_claims%` | Number of claims |
 | `%arka_homes%`, `%arka_homes_limit%` | Homes set / allowed |
 | `%arka_playhours%`, `%arka_week_hours%` | Hours played / active hours in the last 7 days |
-| `%arka_playtime%` | Your active play time as text: `45M`, then `3HR 20M` from 1 hour, then `2 day 5HRS` from 24 hours (wording: `playtime.*` in config.yml) |
+| `%arka_playtime%` | Your active play time as text: `45m`, then `3h 20m` from 1 hour, then `2d 5h` from 24 hours (the same text the API and the leaderboard use) |
 | `%arka_blocks_per_hour%` | Claim blocks earned per hour |
 | `%arka_afk%` | The AFK tag while AFK, empty otherwise (put it before names in TAB) |
 | `%arka_top_<category>_<n>_name%`, `_value%`, `_raw%` | Leaderboard rank `n` for `kills`, `deaths`, `money`, `playtime` |

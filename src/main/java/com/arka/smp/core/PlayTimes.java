@@ -1,20 +1,21 @@
 package com.arka.smp.core;
 
 /**
- * Play time as text. Below 1 hour only minutes ("45M"), from 1 hour hours and minutes ("3HR 20M"), from 24 hours days
- * and hours without minutes ("2 day 5HRS"). The three wordings use {d} {h} {m}. No server needed.
+ * Play time as text, written the same way everywhere (placeholder, leaderboard, API): below 1 hour only minutes
+ * ("45m"), from 1 hour hours and minutes ("3h 20m"), from 24 hours days and hours without minutes ("2d 5h"). The
+ * wordings use {d} {h} {m}. No server needed.
  */
 public final class PlayTimes {
     private PlayTimes() {
     }
 
-    public static final String MINUTES = "{m}M";
-    public static final String HOURS = "{h}HR {m}M";
-    public static final String DAYS = "{d} day {h}HRS";
+    public static final String MINUTES = "{m}m";
+    public static final String HOURS = "{h}h {m}m";
+    public static final String DAYS = "{d}d {h}h";
 
-    /** What the API (PlayTimeFormat service) returns: lowercase d, h and m only, same ranges. Not configurable. */
+    /** The one wording used by %arka_playtime%, the leaderboard and the PlayTimeFormat API. Not configurable. */
     public static String compact(long ticks) {
-        return format(ticks, "{m}m", "{h}h {m}m", "{d}d {h}h");
+        return format(ticks, MINUTES, HOURS, DAYS);
     }
 
     public static String format(long ticks, String minutesFmt, String hoursFmt, String daysFmt) {
