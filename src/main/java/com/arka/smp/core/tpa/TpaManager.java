@@ -52,11 +52,35 @@ public final class TpaManager implements Listener {
                 new Request(from.getUniqueId(), to.getUniqueId(), type, System.currentTimeMillis() + timeoutMillis()));
         plugin.messages().send(from, type == Type.TPA ? "tpa-sent" : "tpa-here-sent", "player", to.getName());
         plugin.messages().send(to, type == Type.TPA ? "tpa-received" : "tpa-here-received", "player", from.getName());
-        // Open the request window for them, unless they are busy in another window (the chat message is there anyway).
-        if (plugin.getConfig().getBoolean("tpa.open-menu-on-request", true)
-                && to.getOpenInventory().getType() == org.bukkit.event.inventory.InventoryType.CRAFTING) {
-            Request made = find(to, from.getUniqueId());
-            if (made != null) com.arka.smp.core.menu.TpaRequestMenu.open(plugin, to, made, from);
+        // Open the request window for them (next tick, so it does not collide with the command that sent the request).
+        if (plugin.getConfig().getBoolean("tpa.open-menu-on-request", true)) {
+            UUID fromId = from.getUniqueId();
+            Bukkit.getScheduler().runTask(plugin, () -> showWindow(to, from, fromId));
+        }
+    }
+
+    /** Opens the request window for {@code to}. Never throws; says in the console why it did not open. */
+    private void showWindow(Player to, Player from, UUID fromId) {
+        if (!to.isOnline()) return;
+        Request made = find(to, fromId);
+        if (made == null) return;
+        var open = to.getOpenInventory();
+        // Busy in a chest, shop or other window: do not take it over (the chat message with Accept/Deny is there).
+        if (open.getType() != org.bukkit.event.inventory.InventoryType.CRAFTING) {
+            plugin.errors().info("tpa.window", "Request window not opened: the player has another window open",
+                    "player", to.getName(), "window", String.valueOf(open.getType()), "from", from.getName());
+            return;
+        }
+        try {
+            com.arka.smp.core.menu.TpaRequestMenu.open(plugin, to, made, from);
+        } catch (Throwable t) {
+            plugin.errors().error("tpa.window", "Request window failed to open", t, "player", to.getName(),
+                    "from", from.getName());
+            return;
+        }
+        if (!(to.getOpenInventory().getTopInventory().getHolder(false) instanceof com.arka.smp.core.menu.Menu)) {
+            plugin.errors().warn("tpa.window", "Request window did not open: another plugin cancelled the inventory open",
+                    "player", to.getName(), "from", from.getName(), "window", String.valueOf(to.getOpenInventory().getType()));
         }
     }
 
@@ -121,7 +145,8 @@ public final class TpaManager implements Listener {
             Player other = host == target ? sender : target;
             msg.send(other, "tpa-unsafe-theirs", "player", host.getName());
             msg.send(other, WarpManager.key(safe.problem()), "detail", safe.detail());
-            plugin.getLogger().info("TPA refused (unsafe landing at " + host.getName() + "): " + safe.problem());
+            plugin.errors().info("tpa.safety", "Teleport refused: unsafe landing spot", "host", host.getName(),
+                    "problem", String.valueOf(safe.problem()), "detail", safe.detail());
             return;
         }
         remove(r);

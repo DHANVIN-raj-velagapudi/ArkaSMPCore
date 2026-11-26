@@ -511,6 +511,7 @@ messages:
   trust-already: "<yellow>{player} is already trusted."
   trust-not-trusted: "<red>{player} is not trusted."
   trust-self: "<red>You cannot trust yourself."
+  error-internal: "<red>Something went wrong with that command. Please tell an admin this number: <white>{id}"
   trust-no-such-claim: "<red>You have no claim number {id}. /claim trustlist shows your claim numbers."
   trustlist-title: "<gold><bold>Who you trusted, claim by claim"
   trustlist-empty: "<gray>You have not trusted anybody. Stand in a claim and use <white>/claim trust [player]<gray>: it shares only that claim."

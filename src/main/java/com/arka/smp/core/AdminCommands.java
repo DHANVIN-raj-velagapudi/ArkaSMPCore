@@ -17,7 +17,7 @@ import java.util.UUID;
 /** /arka admin ... (permission arka.admin). */
 public final class AdminCommands {
     public static final List<String> SUBS = List.of("claimblocks", "homelimit", "claims", "deleteclaim",
-            "deleteclaims", "claimtp", "homes", "home", "delhome", "resetcooldown", "leaderboard", "afk", "bypass", "kit", "get", "set", "help");
+            "deleteclaims", "claimtp", "homes", "home", "delhome", "resetcooldown", "leaderboard", "afk", "bypass", "kit", "errors", "get", "set", "help");
 
     private final ArkaSMPCore plugin;
 
@@ -171,6 +171,19 @@ public final class AdminCommands {
                 Object v = plugin.getConfig().get(a[1]);
                 say(s, "<gray>{path} = <white>{v}", "path", a[1], "v", String.valueOf(v));
             }
+            case "errors" -> {
+                var log = plugin.errors();
+                if (a.length > 1 && a[1].equalsIgnoreCase("test")) {
+                    String id = log.warn("errors.test", "Test entry written by /arka admin errors test", "by", s.getName());
+                    say(s, "<green>Wrote test entry <white>{id}<green> to <white>logs/errors.log<green>.", "id", id);
+                    return;
+                }
+                var list = log.recent(8);
+                say(s, "<gold>Error log <gray>({n} recent) - file: <white>plugins/ArkaSMPCore/logs/errors.log", "n", String.valueOf(list.size()));
+                if (list.isEmpty()) say(s, "<green>No problems recorded since the server started.");
+                for (String line : list) say(s, "<gray>{l}", "l", line);
+                say(s, "<gray>/arka admin errors test <dark_gray>writes a test entry to check the file works.");
+            }
             case "kit" -> {
                 if (a.length < 2) {
                     say(s, "<red>/arka admin kit <player> <gray>(gives the starter kit again)");
@@ -218,6 +231,7 @@ public final class AdminCommands {
                 say(s, "<white>homes <player> <gray>| <white>home <player> <name> <gray>| <white>delhome <player> <name>");
                 say(s, "<white>resetcooldown <player> <gray>| <white>leaderboard <refresh|reseed>");
                 say(s, "<white>kit <player> <gray>(give the starter kit again)");
+                say(s, "<white>errors [test] <gray>(recent problems from logs/errors.log)");
                 say(s, "<white>get <path> <gray>| <white>set <path> <value> <gray>(edit config.yml, e.g. claims.blocks-per-hour 150)");
             }
         }

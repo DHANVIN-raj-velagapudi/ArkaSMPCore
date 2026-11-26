@@ -38,6 +38,18 @@ public final class CommandRouter implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        try {
+            return dispatch(sender, cmd, label, args);
+        } catch (RuntimeException | Error t) {
+            // One broken command must never spill a stack trace on the player: log it, give them an error number.
+            String id = plugin.errors().error("command." + cmd.getName().toLowerCase(Locale.ROOT),
+                    "/" + label + " failed", t, "player", sender.getName(), "args", String.join(" ", args));
+            plugin.messages().send(sender, "error-internal", "id", id);
+            return true;
+        }
+    }
+
+    private boolean dispatch(CommandSender sender, Command cmd, String label, String[] args) {
         Messages msg = plugin.messages();
         String name = cmd.getName().toLowerCase(Locale.ROOT);
 

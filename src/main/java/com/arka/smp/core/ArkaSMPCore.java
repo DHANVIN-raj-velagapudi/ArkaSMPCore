@@ -59,9 +59,22 @@ public final class ArkaSMPCore extends JavaPlugin {
     private LeaderboardManager leaderboards;
     private AfkManager afk;
     private ServerStats stats;
+    private ErrorLog errors;
 
     @Override
     public void onEnable() {
+        // The error log comes first, so even a failure while starting is written to logs/errors.log.
+        errors = ErrorLog.create(this, "com.arka.smp.core.");
+        errors.start();
+        try {
+            enable();
+        } catch (RuntimeException | Error t) {
+            errors.error("startup", "ArkaSMPCore could not start", t);
+            throw t;
+        }
+    }
+
+    private void enable() {
         // Data safety first: snapshot the data on every version change, and refuse data from a newer format.
         if (!DataGuard.check(getDataFolder(), getPluginMeta().getVersion(), DATA_FORMAT, getLogger()).proceed()) {
             getServer().getPluginManager().disablePlugin(this);
@@ -158,6 +171,7 @@ public final class ArkaSMPCore extends JavaPlugin {
         if (players != null) players.save();
         if (stats != null) stats.shutdown();
         HandlerList.unregisterAll(this);
+        if (errors != null) errors.stop();
     }
 
     public void reload() {
@@ -204,6 +218,7 @@ public final class ArkaSMPCore extends JavaPlugin {
     public TeleportService teleports() { return teleports; }
     public HomeManager homes() { return homes; }
     public SpawnManager spawn() { return spawn; }
+    public ErrorLog errors() { return errors; }
     public com.arka.smp.core.kit.StarterKit starterKit() { return starterKit; }
     public TpaManager tpa() { return tpa; }
     public RtpManager rtp() { return rtp; }

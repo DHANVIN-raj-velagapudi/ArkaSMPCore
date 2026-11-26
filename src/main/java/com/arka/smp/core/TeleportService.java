@@ -57,8 +57,16 @@ public final class TeleportService implements Listener {
             if (ok && p.isOnline()) {
                 plugin.messages().send(p, "teleported");
                 if (onSuccess != null) onSuccess.run();
+            } else if (!ok) {
+                // Another plugin or the server refused the move: say so instead of leaving the player wondering.
+                plugin.errors().warn("teleport", "Teleport did not happen (cancelled by the server or another plugin)",
+                        "player", p.getName(), "to", dest.getWorld() == null ? "?" : dest.getWorld().getName() + " "
+                                + dest.getBlockX() + " " + dest.getBlockY() + " " + dest.getBlockZ());
             }
-        }));
+        })).exceptionally(t -> {
+            plugin.errors().error("teleport", "Teleport failed", t, "player", p.getName());
+            return null;
+        });
     }
 
     private void cancel(Player p, boolean notify) {
