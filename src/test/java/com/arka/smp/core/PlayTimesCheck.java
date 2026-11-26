@@ -31,6 +31,13 @@ public final class PlayTimesCheck {
         eq("10 days", PlayTimes.format(min(10 * 1440)), "10 day 0HRS");
         eq("negative is zero", PlayTimes.format(-5), "0M");
         eq("custom wording", PlayTimes.format(min(125), "{m}m", "{h}h {m}m", "{d}d {h}h"), "2h 5m");
+        eq("api 0", PlayTimes.compact(0), "0m");
+        eq("api 59 minutes", PlayTimes.compact(min(59)), "59m");
+        eq("api exactly 1 hour", PlayTimes.compact(min(60)), "1h 0m");
+        eq("api 10 hours 42 minutes", PlayTimes.compact(min(642)), "10h 42m");
+        eq("api 23 hours 59 minutes", PlayTimes.compact(min(1439)), "23h 59m");
+        eq("api exactly 24 hours", PlayTimes.compact(min(1440)), "1d 0h");
+        eq("api 2 days 5 hours 40 minutes", PlayTimes.compact(min(2 * 1440 + 340)), "2d 5h");
         System.out.println(failed == 0 ? "ALL PASSED" : failed + " FAILED");
         if (failed != 0) System.exit(1);
     }

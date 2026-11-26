@@ -89,7 +89,7 @@ public final class ArkaSMPCore extends JavaPlugin {
         getServer().getServicesManager().register(com.arka.smp.core.api.PlayTimeProvider.class,
                 id -> players.playTicks(id), this, org.bukkit.plugin.ServicePriority.Normal);
         getServer().getServicesManager().register(com.arka.smp.core.api.PlayTimeFormat.class,
-                this::formatPlayTime, this, org.bukkit.plugin.ServicePriority.Normal);
+                PlayTimes::compact, this, org.bukkit.plugin.ServicePriority.Normal);
         getServer().getServicesManager().register(com.arka.smp.core.api.ClaimBlockBonus.class,
                 (id, blocks) -> players.addBonus(id, blocks), this, org.bukkit.plugin.ServicePriority.Normal);
         stats = new ServerStats(this);

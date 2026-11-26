@@ -3,6 +3,13 @@
 All notable changes to ArkaSMPCore. Versions follow `MAJOR.MINOR.PATCH`: a fix raises the last number, a new feature
 the middle one, a breaking change the first. Every release raises the version.
 
+## 1.10.1
+
+### Changed
+- **The `PlayTimeFormat` API now returns compact text with lowercase `d`, `h`, `m` only**: `45m` under 1 hour,
+  `3h 20m` from 1 hour, `2d 5h` from 24 hours (no minutes). This wording is fixed. The `%arka_playtime%` placeholder and
+  the playtime leaderboard keep the wording from `config.yml` (`playtime.*`).
+
 ## 1.10.0
 
 ### Added

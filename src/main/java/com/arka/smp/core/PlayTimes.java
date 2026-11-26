@@ -12,6 +12,11 @@ public final class PlayTimes {
     public static final String HOURS = "{h}HR {m}M";
     public static final String DAYS = "{d} day {h}HRS";
 
+    /** What the API (PlayTimeFormat service) returns: lowercase d, h and m only, same ranges. Not configurable. */
+    public static String compact(long ticks) {
+        return format(ticks, "{m}m", "{h}h {m}m", "{d}d {h}h");
+    }
+
     public static String format(long ticks, String minutesFmt, String hoursFmt, String daysFmt) {
         long minutes = Math.max(0, ticks) / 1200;       // 20 ticks a second x 60
         long d = minutes / 1440;
