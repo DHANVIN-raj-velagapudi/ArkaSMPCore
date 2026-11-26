@@ -26,8 +26,11 @@ public final class TpaManager implements Listener {
     /** target -> (sender -> request). Expired entries are pruned lazily, no repeating task needed. */
     private final Map<UUID, Map<UUID, Request>> byTarget = new HashMap<>();
 
+    private final TpaPrefs prefs;
+
     public TpaManager(ArkaSMPCore plugin) {
         this.plugin = plugin;
+        this.prefs = new TpaPrefs(plugin);
     }
 
     private long timeoutMillis() {
@@ -37,6 +40,12 @@ public final class TpaManager implements Listener {
     public void send(Player from, Player to, Type type) {
         if (from.getUniqueId().equals(to.getUniqueId())) {
             plugin.messages().send(from, "tpa-self");
+            return;
+        }
+        // The receiver switched requests off, or blocked this player. The sender is only told "not accepting", so a
+        // block is not revealed.
+        if (prefs.isOff(to.getUniqueId()) || prefs.isBlocked(to.getUniqueId(), from.getUniqueId())) {
+            plugin.messages().send(from, "tpa-not-accepting", "player", to.getName());
             return;
         }
         List<Request> existing = incoming(to.getUniqueId());
@@ -51,40 +60,63 @@ public final class TpaManager implements Listener {
         byTarget.computeIfAbsent(to.getUniqueId(), k -> new HashMap<>()).put(from.getUniqueId(),
                 new Request(from.getUniqueId(), to.getUniqueId(), type, System.currentTimeMillis() + timeoutMillis()));
         plugin.messages().send(from, type == Type.TPA ? "tpa-sent" : "tpa-here-sent", "player", to.getName());
+        // Only a chat message: nothing pops up on their screen. [Accept] / /tpaccept opens the window.
         plugin.messages().send(to, type == Type.TPA ? "tpa-received" : "tpa-here-received", "player", from.getName());
-        // Open the request window for them (next tick, so it does not collide with the command that sent the request).
-        if (plugin.getConfig().getBoolean("tpa.open-menu-on-request", true)) {
-            UUID fromId = from.getUniqueId();
-            Bukkit.getScheduler().runTask(plugin, () -> showWindow(to, from, fromId));
+    }
+
+    /**
+     * What /tpaccept, the chat [Accept] and /tpa accept do: open the request window (where the player sees the world,
+     * the exact coordinates and any warning, then presses Accept or Deny). With several requests and no name given,
+     * the list of senders opens first.
+     */
+    public void review(Player target, UUID senderOrNull) {
+        if (senderOrNull != null) {
+            com.arka.smp.core.menu.TpaRequestMenu.open(plugin, target, senderOrNull);
+            return;
+        }
+        List<Request> in = incoming(target.getUniqueId());
+        if (in.isEmpty()) {
+            plugin.messages().send(target, "tpa-none");
+        } else if (in.size() == 1) {
+            com.arka.smp.core.menu.TpaRequestMenu.open(plugin, target, in.get(0).from());
+        } else {
+            com.arka.smp.core.menu.TpaMenu.requests(plugin, target);
         }
     }
 
-    /** Opens the request window for {@code to}. Never throws; says in the console why it did not open. */
-    private void showWindow(Player to, Player from, UUID fromId) {
-        if (!to.isOnline()) return;
-        Request made = find(to, fromId);
-        if (made == null) return;
-        var open = to.getOpenInventory();
-        // Busy in a chest, shop or other window: do not take it over (the chat message with Accept/Deny is there).
-        // With nothing open a player's own view is CRAFTING in survival and CREATIVE in creative mode.
-        var type = open.getType();
-        if (type != org.bukkit.event.inventory.InventoryType.CRAFTING
-                && type != org.bukkit.event.inventory.InventoryType.CREATIVE) {
-            plugin.errors().info("tpa.window", "Request window not opened: the player has another window open",
-                    "player", to.getName(), "window", String.valueOf(open.getType()), "from", from.getName());
-            return;
+    /** Silently removes a pending request (used when the receiver blocks the sender). */
+    public void drop(UUID target, UUID sender) {
+        Map<UUID, Request> map = byTarget.get(target);
+        if (map == null) return;
+        map.remove(sender);
+        if (map.isEmpty()) byTarget.remove(target);
+    }
+
+    /** Blocks or unblocks one player for TPA (also used by the /tpa menu). */
+    public void setBlocked(Player p, org.bukkit.OfflinePlayer target, boolean block) {
+        var msg = plugin.messages();
+        
+        String n = target.getName() != null ? target.getName() : plugin.claims().ownerName(target.getUniqueId());
+        if (block) {
+            if (target.getUniqueId().equals(p.getUniqueId())) {
+                msg.send(p, "tpa-block-self");
+            } else if (prefs.block(p.getUniqueId(), target.getUniqueId())) {
+                drop(p.getUniqueId(), target.getUniqueId());   // a request they already sent goes away too
+                msg.send(p, "tpa-blocked", "player", n);
+            } else {
+                msg.send(p, "tpa-block-already", "player", n);
+            }
+        } else {
+            msg.send(p, prefs.unblock(p.getUniqueId(), target.getUniqueId()) ? "tpa-unblocked" : "tpa-not-blocked", "player", n);
         }
-        try {
-            com.arka.smp.core.menu.TpaRequestMenu.open(plugin, to, made, from);
-        } catch (Throwable t) {
-            plugin.errors().error("tpa.window", "Request window failed to open", t, "player", to.getName(),
-                    "from", from.getName());
-            return;
-        }
-        if (!(to.getOpenInventory().getTopInventory().getHolder(false) instanceof com.arka.smp.core.menu.Menu)) {
-            plugin.errors().warn("tpa.window", "Request window did not open: another plugin cancelled the inventory open",
-                    "player", to.getName(), "from", from.getName(), "window", String.valueOf(to.getOpenInventory().getType()));
-        }
+    }
+
+    public TpaPrefs prefs() {
+        return prefs;
+    }
+
+    public void save() {
+        prefs.save();
     }
 
     /** Pending requests for a target, newest first, expired ones removed. */

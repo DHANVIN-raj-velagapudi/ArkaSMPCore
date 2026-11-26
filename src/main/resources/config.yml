@@ -68,7 +68,7 @@ starter-kit:
 tpa:
   timeout: 60               # seconds before a request expires
   cooldown: 10              # seconds between sending requests
-  open-menu-on-request: true  # open the request window (with exact coordinates) for the player who receives a request
+  confirm-in-menu: true       # /tpaccept and the chat [Accept] open the request window (world, exact coordinates, warning) where you press Accept; false = accept at once
   safety-check: true          # before a teleport, check the landing spot (lava, void, trap...) like warps do; unsafe = refused
 
 
@@ -355,7 +355,25 @@ menus:
     requests:
       material: WRITABLE_BOOK
       name: "<yellow><bold>Incoming requests <white>({count})"
-      lore: ["<gray>Accept or deny requests"]
+      lore: ["<gray>Pick a request, then confirm it in the window"]
+    toggle-on:
+      material: LIME_DYE
+      name: "<green><bold>Requests: ON"
+      lore: ["<gray>Anyone (not blocked) can send you requests", "<yellow>Click to turn requests OFF"]
+    toggle-off:
+      material: GRAY_DYE
+      name: "<red><bold>Requests: OFF"
+      lore: ["<gray>Nobody can send you teleport requests", "<yellow>Click to turn requests ON"]
+    block:
+      material: BARRIER
+      name: "<red><bold>Block a player"
+      lore: ["<gray>They can no longer send you requests"]
+    blocked:
+      material: PAPER
+      name: "<yellow><bold>Blocked players <white>({count})"
+      lore: ["<gray>Click a player to unblock them"]
+    block-title: "<dark_gray>Block who?"
+    blocked-title: "<dark_gray>Unblock who?"
     pick-title: "<dark_gray>Choose a player"
     requests-title: "<dark_gray>Incoming requests"
     choose-title: "<dark_gray>{player}"
@@ -466,9 +484,19 @@ messages:
   # tpa
   tpa-sent: "<green>Request sent to <white>{player}<green>."
   tpa-here-sent: "<green>Request sent to <white>{player}<green> to come to you."
-  tpa-received: "<yellow>{player}</yellow> wants to teleport to you. <green><click:run_command:'/tpaccept {player}'>[Accept]</click></green> <red><click:run_command:'/tpdeny {player}'>[Deny]</click></red>"
-  tpa-here-received: "<yellow>{player}</yellow> wants you to teleport to them. <green><click:run_command:'/tpaccept {player}'>[Accept]</click></green> <red><click:run_command:'/tpdeny {player}'>[Deny]</click></red>"
+  tpa-received: "<yellow>{player}</yellow> wants to teleport to you. <green><click:run_command:'/tpaccept {player}'><hover:show_text:'<gray>Opens a window where you confirm'>[Accept]</hover></click></green> <red><click:run_command:'/tpdeny {player}'>[Deny]</click></red> <dark_gray><click:run_command:'/tpa block {player}'><hover:show_text:'<gray>Never get a request from {player} again'>[Block]</hover></click></dark_gray>"
+  tpa-here-received: "<yellow>{player}</yellow> wants you to teleport to them. <green><click:run_command:'/tpaccept {player}'><hover:show_text:'<gray>Opens a window where you confirm'>[Accept]</hover></click></green> <red><click:run_command:'/tpdeny {player}'>[Deny]</click></red> <dark_gray><click:run_command:'/tpa block {player}'><hover:show_text:'<gray>Never get a request from {player} again'>[Block]</hover></click></dark_gray>"
   tpa-self: "<red>You cannot teleport to yourself."
+  tpa-not-accepting: "<red>{player} is not accepting teleport requests."
+  tpa-toggle-off: "<yellow>Teleport requests are now OFF: nobody can send you one. Turn them back on with <white>/tpa on<yellow>."
+  tpa-toggle-on: "<green>Teleport requests are ON again."
+  tpa-blocked: "<yellow>{player} can no longer send you teleport requests. <gray>(/tpa unblock {player} to undo)"
+  tpa-unblocked: "<green>{player} can send you teleport requests again."
+  tpa-block-already: "<yellow>{player} is already blocked."
+  tpa-not-blocked: "<red>{player} is not blocked."
+  tpa-block-self: "<red>You cannot block yourself."
+  tpa-blocklist-title: "<gold><bold>Players blocked from sending you teleport requests"
+  tpa-blocklist-empty: "<gray>You have not blocked anybody. <white>/tpa block [player]<gray> blocks someone."
   tpa-pending: "<red>You already have a pending request to <white>{player}<red>."
   tpa-none: "<red>No pending teleport requests."
   tpa-accepted-you: "<green>{player} accepted your request."

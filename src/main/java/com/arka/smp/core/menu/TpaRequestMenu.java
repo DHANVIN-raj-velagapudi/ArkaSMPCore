@@ -87,6 +87,10 @@ public final class TpaRequestMenu {
         });
         menu.fill(Items.filler());
         menu.open(viewer);
+        if (!(viewer.getOpenInventory().getTopInventory().getHolder(false) instanceof Menu)) {
+            plugin.errors().warn("tpa.window", "Request window did not open: another plugin cancelled the inventory open",
+                    "player", viewer.getName(), "from", from.getName(), "window", String.valueOf(viewer.getOpenInventory().getType()));
+        }
     }
 
     /** The world item: icon by dimension, name/lore from config, with the "where is that" line chosen. */

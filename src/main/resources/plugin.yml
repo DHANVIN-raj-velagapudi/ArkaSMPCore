@@ -27,7 +27,7 @@ commands:
     usage: /setspawn
   tpa:
     description: Request to teleport to a player
-    usage: /tpa <player>
+    usage: /tpa <player> | accept [player] | deny [player] | toggle | block <player> | unblock <player> | blocklist
   tpahere:
     description: Request a player to teleport to you
     usage: /tpahere <player>

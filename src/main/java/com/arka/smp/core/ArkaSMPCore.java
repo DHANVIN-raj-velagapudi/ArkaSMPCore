@@ -165,6 +165,7 @@ public final class ArkaSMPCore extends JavaPlugin {
         if (leaderboards != null) leaderboards.shutdown();
         if (teleports != null) teleports.shutdown();
         if (homes != null) homes.save();
+        if (tpa != null) tpa.save();
         if (warps != null) warps.save();
         if (spawn != null) spawn.save();
         if (claims != null) claims.save();

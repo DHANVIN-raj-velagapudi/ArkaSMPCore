@@ -49,9 +49,14 @@ buying claim blocks).
 - **Homes** (`/sethome`, `/home`, `/homes`, `/delhome`) with per-rank limits and a tap-only menu
 - **Spawn** (`/spawn`, `/setspawn`), first-join and respawn teleport
 - **TPA** (`/tpa`, `/tpahere`, `/tpaccept`, `/tpdeny`, `/tpcancel`) with clickable Accept/Deny in chat and a menu
-  - The player who receives a request gets an **Incoming TPA / TPAHERE Request** window: Deny on the left, Accept on
-    the right, the sender's world, their **exact X Y Z** and the distance, who sent it, what they want and the time left
-    (`tpa.open-menu-on-request`, texts under `menus.tpa-request`)
+  - A request is only a **chat message** (nothing pops up on screen) with [Accept] [Deny] [Block]. [Accept], `/tpaccept`
+    and `/tpa accept` open the **Incoming TPA / TPAHERE Request** window: Deny on the left, Accept on the right, the
+    sender's world, their **exact X Y Z** and the distance, who sent it, what they want and the time left
+    (`tpa.confirm-in-menu`, texts under `menus.tpa-request`)
+  - **Privacy**: `/tpa toggle` (or `/tpa off` / `/tpa on`) switches all incoming requests off for good (off by default, so
+    requests are allowed until you choose); `/tpa block <player>` blocks one person, `/tpa unblock <player>` and
+    `/tpa blocklist` manage the list. Both are also buttons in the `/tpa` menu. The sender only sees "not accepting
+    requests", never that they were blocked.
   - **Safe landing check**: an accepted request is refused (and stays open) if the landing spot has lava, void, a trap and so
     on, with a red warning in the window (`tpa.safety-check`)
 - **RTP** (`/rtp`): random safe spot between a min and max radius, never inside a claim, per-world disable list
@@ -159,7 +164,9 @@ No permission is needed for any of these. The full list is also in [PLAYER_COMMA
 | `/sethome [name]`, `/home [name]`, `/homes`, `/delhome [name]` | Manage homes |
 | `/spawn` | Go to spawn |
 | `/tpa [player]`, `/tpahere [player]` | Ask to teleport to a player, or ask them to come to you |
-| `/tpaccept`, `/tpdeny`, `/tpcancel` | Answer or cancel requests (aliases `/tpyes`, `/tpno`) |
+| `/tpaccept [player]` (or `/tpa accept`), `/tpdeny`, `/tpcancel` | `/tpaccept` opens the request window where you confirm; deny or cancel directly (aliases `/tpyes`, `/tpno`) |
+| `/tpa toggle` (`on` / `off`) | Turn all incoming teleport requests off or on (saved, on by default) |
+| `/tpa block <player>`, `/tpa unblock <player>`, `/tpa blocklist` | Block people from sending you requests |
 | `/rtp` | Random teleport (aliases `/wild`, `/randomtp`) |
 | `/warp [name]` | Open server warps or teleport to one |
 | `/pwarp [name]`, `/pwarp set <name>`, `/pwarp delete <name>`, `/pwarp list`, `/pwarp info <name>` | Player warps |

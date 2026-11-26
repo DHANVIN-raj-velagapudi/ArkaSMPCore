@@ -109,6 +109,7 @@ public final class CommandRouter implements CommandExecutor, TabCompleter {
                     TpaMenu.open(plugin, p);
                     break;
                 }
+                if (name.equals("tpa") && tpaCommand(p, args)) break;   // /tpa accept|deny|block|unblock|blocklist|toggle|on|off
                 Player target = Bukkit.getPlayerExact(args[0]);
                 if (target == null) msg.send(p, "unknown-player");
                 else plugin.tpa().send(p, target, name.equals("tpa") ? TpaManager.Type.TPA : TpaManager.Type.TPAHERE);
@@ -123,7 +124,7 @@ public final class CommandRouter implements CommandExecutor, TabCompleter {
                     }
                     from = s.getUniqueId();
                 }
-                if (name.equals("tpaccept")) plugin.tpa().accept(p, from);
+                if (name.equals("tpaccept")) answerRequest(p, from);
                 else plugin.tpa().deny(p, from);
             }
             case "tpcancel" -> plugin.tpa().cancel(p);
@@ -335,6 +336,72 @@ public final class CommandRouter implements CommandExecutor, TabCompleter {
         ClaimsMenu.confirmDelete(plugin, p, claim, null);
     }
 
+    /** Accept: by default opens the request window, where the player confirms (tpa.confirm-in-menu). */
+    private void answerRequest(Player p, UUID from) {
+        if (plugin.getConfig().getBoolean("tpa.confirm-in-menu", true)) plugin.tpa().review(p, from);
+        else plugin.tpa().accept(p, from);
+    }
+
+    /** /tpa accept|deny|toggle|on|off|block|unblock|blocklist. Returns false when args[0] is a player name instead. */
+    private boolean tpaCommand(Player p, String[] args) {
+        Messages msg = plugin.messages();
+        var prefs = plugin.tpa().prefs();
+        UUID me = p.getUniqueId();
+        String sub = args[0].toLowerCase(Locale.ROOT);
+        switch (sub) {
+            case "accept", "deny" -> {
+                UUID from = null;
+                if (args.length > 1) {
+                    Player s = Bukkit.getPlayerExact(args[1]);
+                    if (s == null) {
+                        msg.send(p, "unknown-player");
+                        return true;
+                    }
+                    from = s.getUniqueId();
+                }
+                if (sub.equals("accept")) answerRequest(p, from);
+                else plugin.tpa().deny(p, from);
+                return true;
+            }
+            case "toggle", "on", "off" -> {
+                boolean turnOff = sub.equals("toggle") ? !prefs.isOff(me) : sub.equals("off");
+                prefs.setOff(me, turnOff);
+                msg.send(p, turnOff ? "tpa-toggle-off" : "tpa-toggle-on");
+                return true;
+            }
+            case "block", "unblock" -> {
+                if (args.length < 2) {
+                    msg.sendRaw(p, "<red>/tpa " + sub + " [player]");
+                    return true;
+                }
+                OfflinePlayer target = lookup(args[1]);
+                if (target == null) {
+                    msg.send(p, "unknown-player");
+                    return true;
+                }
+                plugin.tpa().setBlocked(p, target, sub.equals("block"));
+                return true;
+            }
+            case "blocklist", "blocked" -> {
+                List<UUID> list = prefs.blockedBy(me);
+                if (list.isEmpty()) {
+                    msg.send(p, "tpa-blocklist-empty");
+                    return true;
+                }
+                msg.send(p, "tpa-blocklist-title");
+                for (UUID id : list) {
+                    String n = plugin.claims().ownerName(id);
+                    msg.sendRaw(p, "<dark_gray>  - <white>{name} <red><click:run_command:'/tpa unblock {name}'>"
+                            + "<hover:show_text:'<gray>Click to unblock {name}'>[unblock]</hover></click>", "name", n);
+                }
+                return true;
+            }
+            default -> {
+                return false;
+            }
+        }
+    }
+
     private OfflinePlayer lookup(String name) {
         Player online = Bukkit.getPlayerExact(name);
         if (online != null) return online;
@@ -430,7 +497,11 @@ public final class CommandRouter implements CommandExecutor, TabCompleter {
                 case "home", "delhome" -> {
                     if (sender instanceof Player p) out.addAll(plugin.homes().names(p.getUniqueId()));
                 }
-                case "tpa", "tpahere", "tpaccept", "tpdeny" -> Bukkit.getOnlinePlayers().forEach(o -> out.add(o.getName()));
+                case "tpa" -> {
+                    out.addAll(List.of("accept", "deny", "toggle", "on", "off", "block", "unblock", "blocklist"));
+                    Bukkit.getOnlinePlayers().forEach(o -> out.add(o.getName()));
+                }
+                case "tpahere", "tpaccept", "tpdeny" -> Bukkit.getOnlinePlayers().forEach(o -> out.add(o.getName()));
                 case "claim" -> out.addAll(CLAIM_SUBS);
                 case "warp" -> out.addAll(plugin.warps().serverNames());
                 case "delwarp" -> out.addAll(plugin.warps().serverNames());
@@ -447,6 +518,12 @@ public final class CommandRouter implements CommandExecutor, TabCompleter {
             else if (args.length == 3 && args[1].equalsIgnoreCase("claimblocks")) out.addAll(List.of("get", "add", "set", "take"));
             else if (args.length == 3 && args[1].equalsIgnoreCase("homelimit")) out.addAll(List.of("get", "set", "reset"));
             else Bukkit.getOnlinePlayers().forEach(o -> out.add(o.getName()));
+        } else if (args.length == 2 && name.equals("tpa") && sender instanceof Player tp
+                && args[0].equalsIgnoreCase("unblock")) {
+            plugin.tpa().prefs().blockedBy(tp.getUniqueId()).forEach(id -> out.add(plugin.claims().ownerName(id)));
+        } else if (args.length == 2 && name.equals("tpa")
+                && (args[0].equalsIgnoreCase("block") || args[0].equalsIgnoreCase("accept") || args[0].equalsIgnoreCase("deny"))) {
+            Bukkit.getOnlinePlayers().forEach(o -> out.add(o.getName()));
         } else if (args.length == 2 && name.equals("arka") && args[0].equalsIgnoreCase("stats")) {
             out.add("text");
         } else if (args.length == 2 && name.equals("pwarp") && (args[0].equalsIgnoreCase("delete")

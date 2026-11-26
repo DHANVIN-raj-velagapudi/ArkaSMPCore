@@ -3,6 +3,28 @@
 All notable changes to ArkaSMPCore. Versions follow `MAJOR.MINOR.PATCH`: a fix raises the last number, a new feature
 the middle one, a breaking change the first. Every release raises the version.
 
+## 1.9.0
+
+### Changed
+- **The request window no longer pops up by itself.** A teleport request is now only a chat message with **[Accept]
+  [Deny] [Block]**. Clicking [Accept], typing `/tpaccept` or `/tpa accept [player]` opens the request window (world,
+  exact coordinates, distance, safety warning), and the player presses Accept or Deny there. With several requests and
+  no name given, a list of senders opens first. `tpa.confirm-in-menu: false` makes `/tpaccept` accept at once like
+  before. The old option `tpa.open-menu-on-request` is gone.
+
+### Added
+- **Turn requests off for good.** `/tpa toggle` (also `/tpa off`, `/tpa on`, or the button in the `/tpa` menu) stops
+  anybody sending you a request. It is saved in `tpa-prefs.yml`, survives restarts, and is off by default (requests are
+  allowed until you switch them off).
+- **Block single players.** `/tpa block <player>`, `/tpa unblock <player>`, `/tpa blocklist` (each name in the list has a
+  clickable [unblock]), plus "Block a player" and "Blocked players" buttons in the `/tpa` menu. Blocking also removes a
+  request they already sent. The sender is only told "{player} is not accepting teleport requests", so a block is not
+  revealed.
+- New messages (`tpa-not-accepting`, `tpa-toggle-on/off`, `tpa-blocked`, `tpa-unblocked`, `tpa-blocklist-*` ...) and menu
+  items (`menus.tpa.toggle-on`, `toggle-off`, `block`, `blocked`). If your config still has the old `tpa-received` and
+  `tpa-here-received` texts they keep working ([Accept] now opens the window); delete them to get the new texts with
+  the [Block] button.
+
 ## 1.8.1
 
 ### Fixed

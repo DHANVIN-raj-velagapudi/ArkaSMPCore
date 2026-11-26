@@ -23,10 +23,14 @@ TELEPORT REQUESTS (TPA)
 -----------------------
 /tpa [player]                      Ask to teleport to a player (no name = pick from a menu)
 /tpahere [player]                  Ask a player to teleport to you
-/tpaccept [player]                 Accept a request        (alias: /tpyes)
+/tpaccept [player]                 Open the request window and confirm (also: /tpa accept)  (alias: /tpyes)
+/tpa toggle                        Turn ALL incoming requests off / on (saved)   (also /tpa on, /tpa off)
+/tpa block <player>                Never get a request from this player
+/tpa unblock <player>              Allow them again
+/tpa blocklist                     Who you blocked (click [unblock])
 /tpdeny [player]                   Deny a request          (alias: /tpno)
 /tpcancel                          Cancel your sent requests
-  Requests expire after 60 seconds. Accept/Deny buttons also appear in chat.
+  Requests expire after 60 seconds. A request is a chat message with [Accept] [Deny] [Block] buttons; Accept opens a window.
 
 RANDOM TELEPORT
 ---------------
