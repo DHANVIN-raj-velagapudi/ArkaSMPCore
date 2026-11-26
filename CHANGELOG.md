@@ -3,6 +3,12 @@
 All notable changes to ArkaSMPCore. Versions follow `MAJOR.MINOR.PATCH`: a fix raises the last number, a new feature
 the middle one, a breaking change the first. Every release raises the version.
 
+## 1.11.0
+
+### Added
+- New service interface `com.arka.smp.core.api.MoneyFormat` (`format(rupees)`), provided by ArkaSMPEconomy (1.10.0 or newer). It
+  gives the server's money text without paise (`₹1,250`, `₹1.25k`, `₹2.5L`, `₹1Cr`), the same text as `%arkaeco_balance_formatted%`.
+
 ## 1.10.2
 
 ### Changed
