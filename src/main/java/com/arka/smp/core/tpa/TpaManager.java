@@ -66,7 +66,10 @@ public final class TpaManager implements Listener {
         if (made == null) return;
         var open = to.getOpenInventory();
         // Busy in a chest, shop or other window: do not take it over (the chat message with Accept/Deny is there).
-        if (open.getType() != org.bukkit.event.inventory.InventoryType.CRAFTING) {
+        // With nothing open a player's own view is CRAFTING in survival and CREATIVE in creative mode.
+        var type = open.getType();
+        if (type != org.bukkit.event.inventory.InventoryType.CRAFTING
+                && type != org.bukkit.event.inventory.InventoryType.CREATIVE) {
             plugin.errors().info("tpa.window", "Request window not opened: the player has another window open",
                     "player", to.getName(), "window", String.valueOf(open.getType()), "from", from.getName());
             return;

@@ -3,6 +3,14 @@
 All notable changes to ArkaSMPCore. Versions follow `MAJOR.MINOR.PATCH`: a fix raises the last number, a new feature
 the middle one, a breaking change the first. Every release raises the version.
 
+## 1.8.1
+
+### Fixed
+- **The TPA request window did not open for players in creative mode.** With no window open, a creative player's own
+  inventory view reports the type `CREATIVE` (survival players report `CRAFTING`), and the check "does the player
+  already have another window open?" treated that as busy. Both are now treated as "nothing open". This was found
+  from the new error log (`tpa.window`, `window=CREATIVE`).
+
 ## 1.8.0
 
 ### Added
