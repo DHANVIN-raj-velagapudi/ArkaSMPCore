@@ -65,6 +65,8 @@ public final class AfkManager implements Listener {
     private final Map<UUID, State> states = new java.util.concurrent.ConcurrentHashMap<>();   // read by async placeholders
     private BukkitTask task;
     private int flushCounter;
+    /** Copy of afk.invulnerable, refreshed every second: the damage event fires for every mob and must not read config paths. */
+    private volatile boolean invulnerable;
 
     public AfkManager(ArkaSMPCore plugin) {
         this.plugin = plugin;
@@ -74,6 +76,7 @@ public final class AfkManager implements Listener {
 
     public void start() {
         stop();
+        invulnerable = plugin.getConfig().getBoolean("afk.invulnerable", false);
         for (Player p : Bukkit.getOnlinePlayers()) init(p);
         task = Bukkit.getScheduler().runTaskTimer(plugin, this::tick, 20L, 20L);
     }
@@ -221,6 +224,7 @@ public final class AfkManager implements Listener {
 
     private void tick() {
         var cfg = plugin.getConfig();
+        invulnerable = cfg.getBoolean("afk.invulnerable", false);
         if (!cfg.getBoolean("afk.enabled", true)) {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 State st = states.get(p.getUniqueId());
@@ -408,7 +412,7 @@ public final class AfkManager implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onAnyDamage(EntityDamageEvent e) {
-        if (!plugin.getConfig().getBoolean("afk.invulnerable", false)) return;
+        if (!invulnerable) return;
         if (e.getEntity() instanceof Player p && isAfk(p.getUniqueId())
                 && e.getCause() != EntityDamageEvent.DamageCause.VOID
                 && e.getCause() != EntityDamageEvent.DamageCause.KILL) {

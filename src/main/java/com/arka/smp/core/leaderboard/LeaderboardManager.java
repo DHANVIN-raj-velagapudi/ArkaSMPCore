@@ -1,11 +1,12 @@
 package com.arka.smp.core.leaderboard;
 
 import com.arka.smp.core.ArkaSMPCore;
-import com.arka.smp.core.DataFile;
+import com.arka.smp.core.TextFile;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Statistic;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -49,12 +50,19 @@ public final class LeaderboardManager implements Listener {
     private static final class Stat {
         final UUID id;
         String name = "?";
+        /** Lower-case name, kept so sorting never has to build a new string for each comparison. */
+        String lower = "?";
         long kills, deaths, playTicks;
         double money;
         boolean hidden;
 
         Stat(UUID id) {
             this.id = id;
+        }
+
+        void rename(String n) {
+            name = n;
+            lower = n.toLowerCase(Locale.ROOT);
         }
 
         double value(Category c) {
@@ -74,7 +82,9 @@ public final class LeaderboardManager implements Listener {
     }
 
     private final ArkaSMPCore plugin;
-    private final DataFile data;
+    private final TextFile data;
+    /** The one-time import of players from before this plugin was installed has run. */
+    private boolean seeded;
     private final VaultEconomy economy;
     private final Map<UUID, Stat> stats = new HashMap<>();
     private volatile Map<Category, Ranking> rankings = new EnumMap<>(Category.class);
@@ -85,13 +95,15 @@ public final class LeaderboardManager implements Listener {
     private BukkitTask saveTask;
     private BukkitTask seedTask;
     private boolean dirty;
+    /** Per category: its ranking is out of date. Kills and deaths rarely change, so most refreshes sort only play time. */
+    private final boolean[] stale = new boolean[Category.values().length];
     private final Map<String, Long> recentKills = new HashMap<>();
 
     public LeaderboardManager(ArkaSMPCore plugin) {
         this.plugin = plugin;
-        this.data = new DataFile(plugin, "stats.yml");
+        this.data = new TextFile(plugin, "stats.yml", this::render);
         this.economy = new VaultEconomy(plugin);
-        load();
+        load(data.read());
         rebuild();
     }
 
@@ -115,7 +127,7 @@ public final class LeaderboardManager implements Listener {
         refreshTask = Bukkit.getScheduler().runTaskTimer(plugin, this::refresh, 40L, refresh);
         long save = Math.max(1, cfg.getInt("leaderboards.save-minutes", 5)) * 1200L;
         saveTask = Bukkit.getScheduler().runTaskTimer(plugin, this::persist, save, save);
-        if (cfg.getBoolean("leaderboards.seed-existing", true) && !data.yaml().getBoolean("seeded", false)) {
+        if (cfg.getBoolean("leaderboards.seed-existing", true) && !seeded) {
             Bukkit.getScheduler().runTaskLater(plugin, this::seedExisting, 100L);
         }
     }
@@ -134,21 +146,23 @@ public final class LeaderboardManager implements Listener {
 
     /** Admin: scan all known players again. */
     public void reseed() {
-        data.yaml().set("seeded", false);
+        seeded = false;
         seedExisting();
     }
 
     // ---- data -------------------------------------------------------------------------------
 
-    private void load() {
-        ConfigurationSection cs = data.yaml().getConfigurationSection("stats");
+    /** Copies the file into Stat objects. The YAML tree is only a temporary: it is garbage as soon as this returns. */
+    void load(YamlConfiguration yaml) {
+        seeded = yaml.getBoolean("seeded", false);
+        ConfigurationSection cs = yaml.getConfigurationSection("stats");
         if (cs == null) return;
         for (String key : cs.getKeys(false)) {
             ConfigurationSection s = cs.getConfigurationSection(key);
             if (s == null) continue;
             try {
                 Stat st = new Stat(UUID.fromString(key));
-                st.name = s.getString("name", "?");
+                st.rename(s.getString("name", "?"));
                 st.kills = s.getLong("kills");
                 st.deaths = s.getLong("deaths");
                 st.playTicks = s.getLong("play");
@@ -163,18 +177,25 @@ public final class LeaderboardManager implements Listener {
     private void persist() {
         if (!dirty) return;
         dirty = false;
-        var y = data.yaml();
-        y.set("stats", null);
-        for (Stat s : stats.values()) {
-            String p = "stats." + s.id;
-            y.set(p + ".name", s.name);
-            y.set(p + ".kills", s.kills);
-            y.set(p + ".deaths", s.deaths);
-            y.set(p + ".play", s.playTicks);
-            y.set(p + ".money", s.money);
-            y.set(p + ".hidden", s.hidden);
-        }
         data.markDirty();
+    }
+
+    /** The whole file as YAML text, written straight from the Stat objects (same keys as before). */
+    String render() {
+        StringBuilder sb = new StringBuilder(64 + stats.size() * 130);
+        sb.append("seeded: ").append(seeded).append('\n');
+        if (stats.isEmpty()) return sb.append("stats: {}\n").toString();
+        sb.append("stats:\n");
+        for (Stat s : stats.values()) {
+            sb.append("  ").append(s.id).append(":\n")
+                    .append("    name: ").append(TextFile.quote(s.name)).append('\n')
+                    .append("    kills: ").append(s.kills).append('\n')
+                    .append("    deaths: ").append(s.deaths).append('\n')
+                    .append("    play: ").append(s.playTicks).append('\n')
+                    .append("    money: ").append(Double.isFinite(s.money) ? Double.toString(s.money) : "0.0").append('\n')
+                    .append("    hidden: ").append(s.hidden).append('\n');
+        }
+        return sb.toString();
     }
 
     private Stat stat(Player p) {
@@ -184,30 +205,60 @@ public final class LeaderboardManager implements Listener {
             if (killStat != null) s.kills = p.getStatistic(killStat);
             if (deathStat != null) s.deaths = p.getStatistic(deathStat);
             stats.put(s.id, s);
+            java.util.Arrays.fill(stale, true);
         }
         return s;
     }
 
+    /** Copies the live values of an online player. Only a real change marks the player and the rankings as out of date. */
     private void capture(Player p, Stat s) {
-        s.name = p.getName();
-        s.playTicks = plugin.players().playTicks(p.getUniqueId());   // active (non-AFK) time
-        if (economy.available()) s.money = economy.balance(p);
-        s.hidden = p.hasPermission(plugin.getConfig().getString("leaderboards.hide-permission", "arka.leaderboard.hide"));
-        dirty = true;
+        String name = p.getName();
+        if (!name.equals(s.name)) {
+            s.rename(name);
+            dirty = true;
+            java.util.Arrays.fill(stale, true);       // the name breaks ties in every ranking
+        }
+        long play = plugin.players().playTicks(p.getUniqueId());   // active (non-AFK) time
+        if (play != s.playTicks) {
+            s.playTicks = play;
+            dirty = true;
+            stale[Category.PLAYTIME.ordinal()] = true;
+        }
+        if (economy.available()) {
+            double money = economy.balance(p);
+            if (money != s.money) {
+                s.money = money;
+                dirty = true;
+                stale[Category.MONEY.ordinal()] = true;
+            }
+        }
+        boolean hidden = p.hasPermission(plugin.getConfig().getString("leaderboards.hide-permission", "arka.leaderboard.hide"));
+        if (hidden != s.hidden) {
+            s.hidden = hidden;
+            dirty = true;
+            java.util.Arrays.fill(stale, true);       // hiding or showing a player moves everyone below
+        }
     }
 
-    /** Update online players and rebuild the ranked snapshots. */
+    /** Update online players and rebuild the ranked snapshots that changed. */
     public void refresh() {
         for (Player p : Bukkit.getOnlinePlayers()) capture(p, stat(p));
         rebuild();
     }
 
     private void rebuild() {
+        Map<Category, Ranking> previous = rankings;
         Map<Category, Ranking> next = new EnumMap<>(Category.class);
         for (Category c : Category.values()) {
+            Ranking old = previous.get(c);
+            if (old != null && !stale[c.ordinal()]) {
+                next.put(c, old);                      // nothing changed for this category: keep the sorted list
+                continue;
+            }
+            stale[c.ordinal()] = false;
             List<Stat> visible = new ArrayList<>();
             for (Stat s : stats.values()) if (!s.hidden) visible.add(s);
-            visible.sort(Comparator.<Stat>comparingDouble(s -> -s.value(c)).thenComparing(s -> s.name.toLowerCase(Locale.ROOT)));
+            visible.sort(Comparator.<Stat>comparingDouble(s -> -s.value(c)).thenComparing(s -> s.lower));
             List<Entry> entries = new ArrayList<>(visible.size());
             Map<UUID, Integer> rank = new HashMap<>();
             for (int i = 0; i < visible.size(); i++) {
@@ -232,7 +283,7 @@ public final class LeaderboardManager implements Listener {
                 for (int i = 0; i < 5 && it.hasNext(); i++) {
                     OfflinePlayer op = it.next();
                     Stat s = new Stat(op.getUniqueId());
-                    s.name = op.getName();
+                    s.rename(op.getName());
                     try {
                         if (killStat != null) s.kills = op.getStatistic(killStat);
                         if (deathStat != null) s.deaths = op.getStatistic(deathStat);
@@ -244,8 +295,9 @@ public final class LeaderboardManager implements Listener {
                 }
                 if (!it.hasNext()) {
                     cancel();
-                    data.yaml().set("seeded", true);
+                    seeded = true;
                     dirty = true;
+                    java.util.Arrays.fill(stale, true);
                     rebuild();
                     plugin.getLogger().info("Leaderboards: import finished.");
                 }
@@ -268,7 +320,9 @@ public final class LeaderboardManager implements Listener {
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
         Player victim = e.getEntity();
-        stat(victim).deaths++;
+        Stat dead = stat(victim);
+        dead.deaths++;
+        stale[Category.DEATHS.ordinal()] = true;
         Player killer = victim.getKiller();
         if (killer != null && !killer.equals(victim)) {
             // Anti kill-boosting: the same killer/victim pair only counts once per cooldown.
@@ -277,7 +331,9 @@ public final class LeaderboardManager implements Listener {
             String key = killer.getUniqueId() + ":" + victim.getUniqueId();
             Long last = recentKills.get(key);
             if (last == null || now - last >= cd) {
-                stat(killer).kills++;
+                Stat killing = stat(killer);
+                killing.kills++;
+                stale[Category.KILLS.ordinal()] = true;
                 recentKills.put(key, now);
                 if (recentKills.size() > 500) recentKills.values().removeIf(t -> now - t >= cd);
             }

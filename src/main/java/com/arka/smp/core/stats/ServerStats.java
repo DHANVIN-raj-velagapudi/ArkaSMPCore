@@ -1,9 +1,10 @@
 package com.arka.smp.core.stats;
 
 import com.arka.smp.core.ArkaSMPCore;
-import com.arka.smp.core.DataFile;
+import com.arka.smp.core.TextFile;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -46,7 +47,7 @@ public final class ServerStats implements Listener {
     }
 
     private final ArkaSMPCore plugin;
-    private final DataFile data;
+    private final TextFile data;
     private final Map<UUID, Rec> recs = new ConcurrentHashMap<>();
     private volatile Snapshot snapshot = new Snapshot(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, "-", "-");
     private volatile int totalJoined;
@@ -62,15 +63,24 @@ public final class ServerStats implements Listener {
 
     public ServerStats(ArkaSMPCore plugin) {
         this.plugin = plugin;
-        this.data = new DataFile(plugin, "server-stats.yml");
-        this.peak = data.yaml().getInt("peak", 0);
-        this.installedAt = data.yaml().getLong("installed", 0);
+        this.data = new TextFile(plugin, "server-stats.yml", this::render);
+        // the file is read once into plain fields; the YAML tree is garbage as soon as the constructor returns
+        load(data.read());
         if (installedAt == 0) {
             installedAt = System.currentTimeMillis();       // retention only counts players who joined after this
-            data.yaml().set("installed", installedAt);
             data.markDirty();
         }
-        var dp = data.yaml().getConfigurationSection("daily-peaks");
+    }
+
+    private static long today() {
+        return System.currentTimeMillis() / DAY_MS;
+    }
+
+    /** Copies the file into fields and Rec objects. */
+    void load(YamlConfiguration yaml) {
+        this.peak = yaml.getInt("peak", 0);
+        this.installedAt = yaml.getLong("installed", 0);
+        var dp = yaml.getConfigurationSection("daily-peaks");
         if (dp != null) {
             for (String k : dp.getKeys(false)) {
                 try {
@@ -79,20 +89,12 @@ public final class ServerStats implements Listener {
                 }
             }
         }
-        List<Long> hs = data.yaml().getLongList("hours.sum"), hn = data.yaml().getLongList("hours.samples");
+        List<Long> hs = yaml.getLongList("hours.sum"), hn = yaml.getLongList("hours.samples");
         for (int i = 0; i < 24 && i < hs.size() && i < hn.size(); i++) {
             hourSum[i] = hs.get(i);
             hourSamples[i] = hn.get(i);
         }
-        load();
-    }
-
-    private static long today() {
-        return System.currentTimeMillis() / DAY_MS;
-    }
-
-    private void load() {
-        ConfigurationSection s = data.yaml().getConfigurationSection("players");
+        ConfigurationSection s = yaml.getConfigurationSection("players");
         if (s == null) return;
         long cutoff = System.currentTimeMillis() - 60 * DAY_MS;
         for (String key : s.getKeys(false)) {
@@ -124,11 +126,11 @@ public final class ServerStats implements Listener {
     public void start() {
         stop();
         for (Player p : Bukkit.getOnlinePlayers()) touch(p);
-        countJoined();
+        countJoinedLater();
         rebuild();
         task = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             rebuild();
-            if (++tickCount % 5 == 0) countJoined();       // the playerdata folder is listed every 5 minutes
+            if (++tickCount % 5 == 0) countJoinedLater();   // the playerdata folder is listed every 5 minutes
         }, 1200L, 1200L);
     }
 
@@ -147,27 +149,42 @@ public final class ServerStats implements Listener {
 
     /** Called from Players.flush() (every 5 minutes) and on shutdown. */
     public void persist() {
-        var y = data.yaml();
-        y.set("players", null);
-        y.set("peak", peak);
-        y.set("daily-peaks", null);
-        for (var d : dailyPeaks.entrySet()) y.set("daily-peaks." + d.getKey(), d.getValue());
-        y.set("hours.sum", java.util.Arrays.stream(hourSum).boxed().toList());
-        y.set("hours.samples", java.util.Arrays.stream(hourSamples).boxed().toList());
+        data.markDirty();
+    }
+
+    /** The whole file as YAML text, written straight from the fields (same keys as before). */
+    String render() {
+        StringBuilder sb = new StringBuilder(256 + recs.size() * 150);
+        sb.append("installed: ").append(installedAt).append('\n');
+        sb.append("peak: ").append(peak).append('\n');
+        if (dailyPeaks.isEmpty()) {
+            sb.append("daily-peaks: {}\n");
+        } else {
+            sb.append("daily-peaks:\n");
+            for (var d : dailyPeaks.entrySet()) sb.append("  ").append(d.getKey()).append(": ").append(d.getValue()).append('\n');
+        }
+        sb.append("hours:\n  sum:\n");
+        for (long v : hourSum) sb.append("  - ").append(v).append('\n');
+        sb.append("  samples:\n");
+        for (long v : hourSamples) sb.append("  - ").append(v).append('\n');
+        if (recs.isEmpty()) return sb.append("players: {}\n").toString();
+        sb.append("players:\n");
         for (var e : recs.entrySet()) {
             Rec r = e.getValue();
-            StringBuilder days = new StringBuilder();
-            for (int i = 0; i < 7; i++) {
-                if (i > 0) days.append(',');
-                days.append(r.dayOf[i]).append(':').append(r.ticks[i]);
+            sb.append("  ").append(e.getKey()).append(":\n");
+            sb.append("    first: ").append(r.first).append('\n');
+            sb.append("    last: ").append(r.last).append('\n');
+            if (r.returnedAt != 0) sb.append("    returned: ").append(r.returnedAt).append('\n');
+            sb.append("    days: '");
+            synchronized (r) {
+                for (int i = 0; i < 7; i++) {
+                    if (i > 0) sb.append(',');
+                    sb.append(r.dayOf[i]).append(':').append(r.ticks[i]);
+                }
             }
-            String p = "players." + e.getKey();
-            y.set(p + ".first", r.first);
-            y.set(p + ".last", r.last);
-            y.set(p + ".returned", r.returnedAt == 0 ? null : r.returnedAt);
-            y.set(p + ".days", days.toString());
+            sb.append("'\n");
         }
-        data.markDirty();
+        return sb.toString();
     }
 
     // ---- recording --------------------------------------------------------------------------
@@ -263,15 +280,24 @@ public final class ServerStats implements Listener {
         return snapshot;
     }
 
-    private void countJoined() {
+    /** Lists the playerdata folder on a background thread: on a big server it holds thousands of files. */
+    private void countJoinedLater() {
+        final File dir;
         try {
-            File dir = new File(Bukkit.getWorlds().get(0).getWorldFolder(), "playerdata");
-            String[] names = dir.list((d, n) -> n.endsWith(".dat"));
-            if (names != null) totalJoined = Math.max(names.length, recs.size());
-            else totalJoined = recs.size();
+            dir = new File(Bukkit.getWorlds().get(0).getWorldFolder(), "playerdata");
         } catch (RuntimeException e) {
             totalJoined = recs.size();
+            return;
         }
+        if (!plugin.isEnabled()) return;
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                String[] names = dir.list((d, n) -> n.endsWith(".dat"));
+                totalJoined = names != null ? Math.max(names.length, recs.size()) : recs.size();
+            } catch (RuntimeException e) {
+                totalJoined = recs.size();
+            }
+        });
     }
 
     private void rebuild() {

@@ -3,6 +3,21 @@
 All notable changes to ArkaSMPCore. Versions follow `MAJOR.MINOR.PATCH`: a fix raises the last number, a new feature
 the middle one, a breaking change the first. Every release raises the version.
 
+## 1.12.0
+
+### Changed (memory and CPU; nothing to change on your side)
+- **Much less memory for player data.** `players.yml`, `stats.yml` (leaderboards) and `server-stats.yml` were each kept in memory as
+  a full YAML tree on top of the plugin's own objects: about **16 KB per player ever seen** (48 MB at 3,000 players, 161 MB at
+  10,000). They are now read once at start and kept only as small objects, and saved by writing the text straight from those
+  objects: about **0.8 KB per player** (2.5 MB at 3,000 players, 8 MB at 10,000), measured with a test that loads the same
+  files both ways. The files keep the same keys, so older versions still read them and nothing is converted.
+- Saving those three files no longer turns a big YAML tree into text on the main thread (about 27 ms for 3,000 players, a visible
+  lag spike every few seconds); building the text from the objects takes a few milliseconds.
+- Leaderboards: only the rankings that changed are sorted again (kills and deaths rarely change), instead of all four every 10 seconds.
+- Server stats: the `playerdata` folder is counted on a background thread, not on the main thread.
+- AFK: the "invulnerable" setting is no longer read from the config on every damage event of every mob.
+- Claims: the enter/leave message check stops at once when nobody has a claim.
+
 ## 1.11.0
 
 ### Added

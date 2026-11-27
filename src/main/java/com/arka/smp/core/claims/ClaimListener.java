@@ -352,7 +352,7 @@ public final class ClaimListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onMove(PlayerMoveEvent e) {
-        if (!enterMessage || !e.hasChangedBlock()) return;
+        if (!enterMessage || !e.hasChangedBlock() || claims.isEmpty()) return;
         UUID a = claims.ownerOf(e.getFrom());
         UUID b = claims.ownerOf(e.getTo());
         if ((a == null && b == null) || (a != null && a.equals(b))) return;
